@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book a Session — Firm Foundation</title>
+<meta name="description" content="Book a one-on-one tutoring session in math, biology, or physics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="wordmark" href="index.html">
+      <span class="wordmark-name">Firm Foundation</span>
+      <span class="wordmark-tag">Training the mind to think</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"><span></span></span>
+      Menu
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tutors.html">Tutors</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="resources.html">Resources</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a class="btn btn-sm btn-invert" href="booking.html" aria-current="page">Book a session</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">Booking</p>
+      <h1>Book a session</h1>
+      <p>Choose a tutor, then pick a time from their calendar. You'll get a confirmation by email.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+
+      <div class="tablist" role="tablist" aria-label="Choose a tutor" id="booking-tabs">
+        <button class="tab" type="button" role="tab" id="tab-joshua"
+                aria-controls="panel-joshua" aria-selected="true">Joshua Yuan</button>
+        <button class="tab" type="button" role="tab" id="tab-janissa"
+                aria-controls="panel-janissa" aria-selected="false" tabindex="-1">Janissa Yuan</button>
+        <button class="tab" type="button" role="tab" id="tab-james"
+                aria-controls="panel-james" aria-selected="false" tabindex="-1">James Yim</button>
+      </div>
+
+      <div id="booking-panels">
+
+        <div class="tabpanel" role="tabpanel" id="panel-joshua" aria-labelledby="tab-joshua" tabindex="0">
+          <div class="booking-panel">
+            <div>
+              <h2>Joshua Yuan</h2>
+              <p class="profile-subject">Physics &amp; Science</p>
+              <p class="lede">
+                Focuses on building conceptual understanding first. Students should leave able
+                to explain the reasoning, not just reproduce steps.
+              </p>
+            </div>
+            <aside>
+              <dl class="spec-list">
+                <div><dt>Rate</dt><dd class="rate">$45/hr</dd></div>
+                <div><dt>Format</dt><dd>Both</dd></div>
+              </dl>
+              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JOSHUA-LINK"
+                 target="_blank" rel="noopener noreferrer">
+                Open Joshua's calendar
+              </a>
+              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-top:12px;">
+                Opens in a new tab.
+              </p>
+            </aside>
+          </div>
+        </div>
+
+        <div class="tabpanel" role="tabpanel" id="panel-janissa" aria-labelledby="tab-janissa" tabindex="0" hidden>
+          <div class="booking-panel">
+            <div>
+              <h2>Janissa Yuan</h2>
+              <p class="profile-subject">Biology</p>
+              <p class="lede"><span class="placeholder">[BIO — to be added]</span></p>
+            </div>
+            <aside>
+              <dl class="spec-list">
+                <div><dt>Rate</dt><dd class="rate">$45/hr</dd></div>
+                <div><dt>Format</dt><dd>Both</dd></div>
+              </dl>
+              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JANISSA-LINK"
+                 target="_blank" rel="noopener noreferrer">
+                Open Janissa's calendar
+              </a>
+              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-top:12px;">
+                Opens in a new tab.
+              </p>
+            </aside>
+          </div>
+        </div>
+
+        <div class="tabpanel" role="tabpanel" id="panel-james" aria-labelledby="tab-james" tabindex="0" hidden>
+          <div class="booking-panel">
+            <div>
+              <h2>James Yim</h2>
+              <p class="profile-subject">Math &mdash; through AP Calculus</p>
+              <p class="lede"><span class="placeholder">[BIO — to be added]</span></p>
+            </div>
+            <aside>
+              <dl class="spec-list">
+                <div><dt>Rate</dt><dd class="rate">$40/hr</dd></div>
+                <div><dt>Format</dt><dd>Both</dd></div>
+              </dl>
+              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JAMES-LINK"
+                 target="_blank" rel="noopener noreferrer">
+                Open James's calendar
+              </a>
+              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-top:12px;">
+                Opens in a new tab.
+              </p>
+            </aside>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="note">
+        <strong>Trouble booking?</strong>
+        If no times work for your schedule, <a href="contact.html">send us a note</a> and
+        we'll find something outside the posted hours.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <span class="wordmark-name">Firm Foundation</span>
+        <span class="wordmark-tag">Training the mind to think</span>
+      </div>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="tutors.html">Tutors</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="booking.html">Book</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <p class="footer-legal">
+      &copy; <span class="num">2026</span> Firm Foundation. Math, biology, and physics tutoring for grades 6&ndash;12.
+    </p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

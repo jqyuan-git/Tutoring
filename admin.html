@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutor Login — Firm Foundation</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="wordmark" href="index.html">
+      <span class="wordmark-name">Firm Foundation</span>
+      <span class="wordmark-tag">Training the mind to think</span>
+    </a>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="index.html">Back to site</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">Tutor area</p>
+      <h1>Update your info</h1>
+      <p>Log in to edit your own profile. You can only see and change your own record.</p>
+    </div>
+  </section>
+
+  <!-- ============================ LOGGED OUT ============================ -->
+  <section class="section" id="view-login">
+    <div class="container">
+      <div class="panel">
+        <h2 style="font-size:1.3rem;margin-bottom:1rem;">Log in</h2>
+
+        <p class="status status-error" id="login-error" hidden role="alert"></p>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" name="email" autocomplete="username" required>
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+          </div>
+          <button class="btn" type="submit" id="login-submit">Log in</button>
+        </form>
+
+        <p class="hint" style="margin-top:20px;font-size:.88rem;color:var(--ink-soft);">
+          Forgot your password? Ask Joshua to reset it for you.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ LOGGED IN ============================= -->
+  <section class="section" id="view-editor" hidden>
+    <div class="container">
+
+      <div class="admin-bar">
+        <p>Signed in as <strong id="current-user">name@example.com</strong></p>
+        <button class="btn-quiet" type="button" id="logout-btn">Log out</button>
+      </div>
+
+      <p class="status status-ok" id="save-ok" hidden role="status"></p>
+      <p class="status status-error" id="save-error" hidden role="alert"></p>
+
+      <form class="panel panel-wide" id="editor-form" novalidate>
+
+        <h2 style="font-size:1.3rem;margin-bottom:.35rem;">Your profile</h2>
+        <p style="color:var(--ink-soft);font-size:.94rem;margin-bottom:26px;">
+          Changes appear on the site as soon as you save.
+        </p>
+
+        <div class="field">
+          <label for="f-name">Name</label>
+          <input type="text" id="f-name" value="Joshua Yuan" disabled>
+          <p class="hint">Your name can't be changed here. Ask Joshua if it needs updating.</p>
+        </div>
+
+        <div class="field">
+          <label for="f-credential">Credential</label>
+          <input type="text" id="f-credential" value="High school physics teacher">
+          <p class="hint">One line. Shown under your name on the tutors page.</p>
+        </div>
+
+        <div class="field">
+          <label for="f-bio">Bio</label>
+          <textarea id="f-bio">Focuses on building conceptual understanding first. Students should leave able to explain the reasoning, not just reproduce steps.</textarea>
+          <p class="hint">Two or three sentences about how you work with students.</p>
+        </div>
+
+        <hr style="margin:30px 0 26px;">
+
+        <h3 style="margin-bottom:.35rem;">What you offer</h3>
+        <p style="color:var(--ink-soft);font-size:.94rem;margin-bottom:20px;">
+          Most tutors have one entry. Add another only if you offer something separate.
+        </p>
+
+        <div id="services-list">
+
+          <fieldset class="service-block" style="border:1px solid var(--rule);">
+            <div class="service-block-head">
+              <h4>Service 1</h4>
+              <button class="btn-quiet" type="button" data-remove-service>Remove</button>
+            </div>
+
+            <div class="field">
+              <label for="s1-subject">Subject</label>
+              <input type="text" id="s1-subject" value="Physics &amp; Science">
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="s1-rate">Rate per hour (US$)</label>
+                <input type="number" id="s1-rate" value="45" min="0" step="1" inputmode="numeric">
+              </div>
+              <div class="field">
+                <label for="s1-format">Format</label>
+                <select id="s1-format">
+                  <option>In person</option>
+                  <option>Video</option>
+                  <option selected>Both</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:0;">
+              <label for="s1-url">Booking link</label>
+              <input type="url" id="s1-url" value="https://calendar.app.google/REPLACE-WITH-JOSHUA-LINK">
+              <p class="hint">Your Google Calendar appointment page. Paste the whole link.</p>
+            </div>
+          </fieldset>
+
+        </div>
+
+        <button class="btn-quiet" type="button" id="add-service">+ Add another service</button>
+
+        <div class="form-actions">
+          <button class="btn" type="submit" id="save-btn">Save changes</button>
+          <a class="arrow-link" href="tutors.html" target="_blank" rel="noopener">View your profile &rarr;</a>
+        </div>
+      </form>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="footer-legal" style="margin-top:0;border-top:0;padding-top:0;">
+      &copy; <span class="num">2026</span> Firm Foundation &mdash; tutor area
+    </p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
