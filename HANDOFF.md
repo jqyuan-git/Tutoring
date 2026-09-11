@@ -72,7 +72,14 @@ credible, professional — not playful, not trendy, not a student side project.
 1. **Joshua Yuan** — Physics & Science. Credential: High school physics teacher.
    Bio: "Focuses on building conceptual understanding first. Students should
    leave able to explain the reasoning, not just reproduce steps."
-2. **Janissa Yuan** — Biology. Credential: `[PLACEHOLDER]`. Bio: `[PLACEHOLDER]`
+2. **Janissa Yuan** — Biology, Chemistry. Credential: "Master's candidate in
+   Biology at Grand Canyon University. B.S. in Biology from Cal State Long
+   Beach." Bio: "Breaks down topics like genetics, cellular processes,
+   evolution, and physiology using diagrams and worked examples rather than
+   just definitions. Also helps students build the study habits and
+   test-taking strategies that carry over past a single unit." (filled in
+   from her resume, Session 3 — she has real AP Biology/Honors Chemistry
+   tutoring experience already)
 3. **James Yim** — Math (through AP Calculus). Credential: "Biology major at
    UC Davis. Completed AP Calculus AB & BC." Bio: `[PLACEHOLDER]`
 
@@ -159,6 +166,17 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
    and `index.html` (his subject cell + tutor-preview card).
 2. ~~Confirm the three rates.~~ Updated to Joshua $60, Janissa $35, James $35
    (based on 2026 Irvine, CA tutoring market averages) — still worth a sanity check.
+3. ~~Janissa also tutors Chemistry~~ Resolved (Session 3): her resume showed
+   real Honors Chemistry tutoring experience, not just Biology. Added as a
+   **second entry in her `services` array** (`subject: "Honors Chemistry"`),
+   same $35/hr rate as Biology. Reflected the same way Joshua's second
+   subject was: `tutors.html` (second spec-list block), `services.html`
+   (second table row), `index.html` (her subject cell gained a mention +
+   her tutor-preview card subject line), `booking.html` and `contact.html`
+   subject lines. Her resume also showed Writing tutoring experience —
+   deliberately **not** added, since that's a bigger departure from the
+   site's stated "math, biology, physics" positioning than Chemistry is;
+   left for a future explicit decision if wanted.
 
 ---
 
@@ -457,8 +475,8 @@ there, then resume with the CLI.**
 
 ## Placeholder checklist
 
-- [ ] Janissa's credential
-- [ ] Janissa's bio
+- [x] Janissa's credential and bio — filled in from her resume (Session 3), plus
+      added Honors Chemistry as a second subject (see "Open questions" above)
 - [x] James's bio and credential — filled in from his resume (Session 3): Biological
       Sciences major at UC Davis (pre-dental), recently completed AP Calculus AB & BC,
       volleyball coaching experience informs his tutoring style. Draft wording, not
@@ -467,7 +485,8 @@ there, then resume with the CLI.**
 - [x] Joshua's math service — added: any HS math level, $60/hr
 - [ ] Booking URLs (all three — currently `calendar.app.google/REPLACE-WITH-*`)
 - [x] James's contact email — `jamesyim2004@gmail.com` (from his resume)
-- [ ] Contact emails — Joshua's and Janissa's still `REPLACE-*@example.com`
+- [x] Janissa's contact email — `janissa6646@gmail.com` (from her resume, Session 3)
+- [ ] Joshua's contact email — still `REPLACE-JOSHUA@example.com`
 - [x] Payment method — Venmo, per-tutor link editable via `admin.html` (Session 3)
 - [ ] Cancellation policy (`services.html`)
 - [ ] Resource links and titles (`resources.html`)
