@@ -5,10 +5,12 @@ Working notes for continuing this build in a local Claude Code session.
 
 ---
 
-## Current state
+## Current state (updated by a later session — see "Session 2" below)
 
-**Build step 1 of 5 is complete.** All seven pages are scaffolded with hardcoded
-data and full styling. No Firebase yet.
+**Build step 1 of 5 is complete and live.** All seven pages are scaffolded with
+hardcoded data and full styling, pushed to GitHub, and served via GitHub Pages.
+**Step 2 (Firebase) is in progress — login was started but not completed.**
+See "Session 2 handoff" near the bottom of this file for the exact resume point.
 
 ```
 Tutoring/
@@ -114,11 +116,21 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
 
 ## Settled
 
-- **GitHub username:** `jqyuan-git`
-- **Hosting:** GitHub Pages, from a **new public repo named `Tutoring`**
-  (Pages requires a public repo on a free account; fine here — static HTML,
-  no secrets, and Firebase web config keys are safe to commit).
-- **Live URL:** `https://jqyuan-git.github.io/Tutoring/`
+- **`jqyuan-git` is a GitHub *organization***, not Joshua's personal account.
+  His personal account is `jqyuan` (member of that org). `gh` (GitHub CLI) is
+  authenticated as `jqyuan` — that's correct and fine, but it means
+  `gh repo create <name>` alone creates the repo under the *personal* account.
+  For this project you must explicitly say `gh repo create jqyuan-git/<name>`.
+  (A repo was accidentally created under `jqyuan` first, then deleted and
+  recreated correctly under `jqyuan-git` — if you see stray repos under the
+  personal `jqyuan` account, that's why.)
+- **Repo (done):** `https://github.com/jqyuan-git/Tutoring` — public, pushed, live.
+- **Local clone (done):** `C:\Users\joshu\OneDrive\Documents\GitHub\Tutoring`
+  (moved here from an initial scratch copy in `Downloads\Tutoring` — the empty
+  shell of that old folder may still linger; see gotchas below).
+- **GitHub Pages (done):** enabled via `gh api`, serving from `master` branch,
+  root path. **Live URL:** `https://jqyuan-git.github.io/Tutoring/` — confirmed
+  working with real styling.
 - Relative paths are already used throughout, so the site works under the
   `/Tutoring/` subpath with no changes.
 
@@ -231,9 +243,8 @@ Ask Joshua for his GitHub username first.
 
 ## Firebase provisioning (run locally — MCP required)
 
-Joshua has the Firebase MCP plugin installed and his Firebase CLI authenticated.
-**Do these directly via MCP rather than handing over instructions.
-Confirm each step with him before running it.**
+**Do these directly via MCP or the `firebase` CLI rather than handing over
+instructions. Confirm each step with Joshua before running it.**
 
 1. Create a Firebase project (or ask which existing one to use)
 2. Register a web app and pull the config into `js/firebase-config.js`
@@ -245,6 +256,59 @@ Confirm each step with him before running it.**
 7. Write and deploy `firestore.rules`
 
 **Still include the manual setup steps in the README as a fallback.**
+
+---
+
+## Session 2 handoff — resume here
+
+Everything above through GitHub Pages going live was completed and verified.
+This session then started on Step 2 (Firebase) and got partway through setup
+before being cut off. Exact state:
+
+### Where to pick up
+
+1. **Firebase CLI login was started but not finished.** Running `firebase
+   login` printed a URL + session ID and is waiting on a manual authorization
+   code (this machine/session has no way to auto-complete the browser
+   redirect, so it fell back to the manual-code flow). Nobody ever supplied
+   the code back, so **Joshua is not logged in yet.** To resume: run
+   `firebase login` again (old session codes expire), have him open the
+   printed URL, sign in with the Google account tied to the Firebase project,
+   copy the authorization code shown at the end, then run
+   `firebase login <that code>` to finish.
+2. Once logged in, run `firebase projects:list` to see what Firebase projects
+   already exist, and ask Joshua whether to use an existing one or create a
+   new one — **do not assume.**
+3. Then proceed through the 7 numbered provisioning steps just above.
+
+### Environment gotchas discovered this session (don't rediscover these)
+
+- **Two Claude Code hooks are broken** and error on nearly every Bash/Read
+  call: `gsd-validate-commit.sh` and `gsd-read-injection-scanner.js` (both
+  under `.claude/hooks/`, invoked with Windows `&`-call syntax in what's
+  apparently expecting a POSIX shell). Noisy but not blocking — flagged to
+  Joshua twice, never fixed. Worth fixing if it keeps being annoying.
+- **Node.js on this machine is v25.9.0**, newer than what `firebase-tools`
+  officially supports (20/22/24 — triggers an `EBADENGINE` warning on every
+  install/run via the `superstatic` dependency). Nothing has broken yet, but
+  if Hosting-related Firebase commands misbehave, this is the first suspect.
+- **`claude mcp add` has a parsing bug**: any argument after the `--`
+  separator that starts with a dash (e.g. `-y`, `--dir`) makes it fail with
+  `error: unknown option`, even though those flags are meant for the
+  subprocess, not for `claude mcp add` itself. Workaround used: install
+  `firebase-tools` globally (`npm install -g firebase-tools`) and register the
+  server as plain `firebase mcp` with no flags:
+  `claude mcp add firebase-mcp -- firebase mcp`. It registered fine but
+  **`claude mcp list` showed it as "Failed to connect — timed out after
+  30000ms"** — untested whether finishing the Firebase login above fixes
+  this; check `claude mcp list` again after login.
+- **GitHub CLI account:** `gh` is authenticated as personal account `jqyuan`
+  (see "Settled" above for why that's fine but requires explicit
+  `jqyuan-git/<repo>` naming).
+- **Harmless leftover:** `C:\Users\joshu\Downloads\Tutoring` is an empty
+  folder that resisted deletion all session (persistent file lock — likely
+  OneDrive backup, antivirus, or an open Explorer window). Not the real
+  project; safe to ignore or delete manually later.
 
 ---
 
