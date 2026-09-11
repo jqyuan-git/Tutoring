@@ -26,6 +26,15 @@ function slugFor(name) {
   return firstName(name).toLowerCase();
 }
 
+/* Public pages show "First L." rather than a tutor's full last name. The
+   full name is still stored in Firestore and shown to the tutor themselves
+   in admin.html — this is a display-only privacy choice. */
+function displayName(name) {
+  const parts = (name || "").trim().split(/\s+/);
+  if (parts.length < 2) return parts[0] || "";
+  return parts[0] + " " + parts[parts.length - 1].charAt(0) + ".";
+}
+
 function formatRate(rate) {
   return "$" + rate + "/hr";
 }
@@ -96,7 +105,7 @@ function renderSubjectsGrid(tutors) {
     (t.services || []).forEach(function (s) {
       cells.push(
         el("div", { class: "cell" }, [
-          el("p", { class: "eyebrow", text: "With " + t.name }),
+          el("p", { class: "eyebrow", text: "With " + displayName(t.name) }),
           el("h3", { text: s.subject }),
           el("p", { text: t.bio || "" }),
         ])
@@ -114,7 +123,7 @@ function renderTutorPreview(tutors) {
   const cards = tutors.map(function (t) {
     const subjects = (t.services || []).map(function (s) { return s.subject; }).join(", ");
     return el("article", { class: "tutor-card" }, [
-      el("h3", { text: t.name }),
+      el("h3", { text: displayName(t.name) }),
       el("p", { class: "card-subject", text: subjects }),
       el("p", { class: "card-credential", text: t.credential || "" }),
       el("a", { class: "arrow-link", attrs: { href: "tutors.html#" + t.slug } }, [
@@ -154,7 +163,7 @@ function renderTutorProfiles(tutors) {
 
     const linkedinUrl = t.linkedin ? safeHttpUrl(t.linkedin) : null;
     const profileMainChildren = [
-      el("h2", { text: t.name }),
+      el("h2", { text: displayName(t.name) }),
       el("p", { class: "profile-subject", text: subjects }),
       el("p", { class: "profile-credential", text: t.credential || "" }),
       el("p", { class: "profile-bio", text: t.bio || "" }),
@@ -186,7 +195,7 @@ function renderRatesTable(tutors) {
       rows.push(
         el("tr", {}, [
           el("th", { attrs: { scope: "row" }, text: s.subject }),
-          el("td", { text: t.name }),
+          el("td", { text: displayName(t.name) }),
           el("td", { class: "rate", text: formatRate(s.rate) }),
           el("td", { text: formatLabel(s.format) }),
         ])
@@ -213,7 +222,7 @@ function renderBooking(tutors) {
         "aria-selected": i === 0 ? "true" : "false",
         tabindex: i === 0 ? "0" : "-1",
       },
-      text: t.name,
+      text: displayName(t.name),
     });
   });
 
@@ -240,7 +249,7 @@ function renderBooking(tutors) {
       [
         el("div", { class: "booking-panel" }, [
           el("div", {}, [
-            el("h2", { text: t.name }),
+            el("h2", { text: displayName(t.name) }),
             el("p", { class: "profile-subject", text: subjects }),
             el("p", { class: "lede", text: t.bio || "" }),
           ]),
