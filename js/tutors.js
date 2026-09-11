@@ -1,0 +1,249 @@
+/* ==========================================================================
+   Firm Foundation — public tutor data
+   Fetches the `tutors` collection from Firestore and re-renders whichever of
+   the known DOM hooks are present on the current page. If the fetch fails,
+   or Firestore has no active tutors yet, this does nothing — the hardcoded
+   markup already in each page is the fallback, and stays exactly as-is.
+   ========================================================================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { firebaseConfig } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function firstName(name) {
+  return (name || "").trim().split(/\s+/)[0];
+}
+
+function slugFor(name) {
+  return firstName(name).toLowerCase();
+}
+
+function formatRate(rate) {
+  return "$" + rate + "/hr";
+}
+
+/* Builds a DOM element without ever parsing a string as HTML — tutor bios
+   and credentials will eventually come from tutors editing their own
+   profile, so they're never trustworthy enough for innerHTML. */
+function el(tag, opts, children) {
+  const node = document.createElement(tag);
+  opts = opts || {};
+  if (opts.class) node.className = opts.class;
+  if (opts.text != null) node.textContent = opts.text;
+  if (opts.attrs) {
+    for (const key in opts.attrs) node.setAttribute(key, opts.attrs[key]);
+  }
+  (children || []).forEach(function (child) {
+    if (child) node.appendChild(child);
+  });
+  return node;
+}
+
+async function fetchTutors() {
+  const q = query(collection(db, "tutors"), orderBy("order"));
+  const snap = await getDocs(q);
+  return snap.docs
+    .map(function (doc) {
+      const data = doc.data();
+      return Object.assign({ id: doc.id, slug: slugFor(data.name) }, data);
+    })
+    .filter(function (t) {
+      return t.active !== false;
+    });
+}
+
+/* ------------------------------------------------------------ renderers -- */
+
+function renderSubjectsGrid(tutors) {
+  const root = document.getElementById("subjects-grid");
+  if (!root) return;
+
+  const cells = [];
+  tutors.forEach(function (t) {
+    (t.services || []).forEach(function (s) {
+      cells.push(
+        el("div", { class: "cell" }, [
+          el("p", { class: "eyebrow", text: "With " + t.name }),
+          el("h3", { text: s.subject }),
+          el("p", { text: t.bio || "" }),
+        ])
+      );
+    });
+  });
+  if (!cells.length) return;
+  root.replaceChildren.apply(root, cells);
+}
+
+function renderTutorPreview(tutors) {
+  const root = document.getElementById("tutor-preview");
+  if (!root) return;
+
+  const cards = tutors.map(function (t) {
+    const subjects = (t.services || []).map(function (s) { return s.subject; }).join(", ");
+    return el("article", { class: "tutor-card" }, [
+      el("h3", { text: t.name }),
+      el("p", { class: "card-subject", text: subjects }),
+      el("p", { class: "card-credential", text: t.credential || "" }),
+      el("a", { class: "arrow-link", attrs: { href: "tutors.html#" + t.slug } }, [
+        document.createTextNode("Read profile →"),
+      ]),
+    ]);
+  });
+  if (!cards.length) return;
+  root.replaceChildren.apply(root, cards);
+}
+
+function renderTutorProfiles(tutors) {
+  const root = document.getElementById("tutor-profiles");
+  if (!root) return;
+
+  const articles = tutors.map(function (t) {
+    const services = t.services || [];
+    const subjects = services.map(function (s) { return s.subject; }).join(", ");
+    const multi = services.length > 1;
+
+    const asideChildren = [];
+    services.forEach(function (s) {
+      if (multi) asideChildren.push(el("p", { class: "eyebrow", text: s.subject }));
+      asideChildren.push(
+        el("dl", { class: "spec-list" }, [
+          el("div", {}, [el("dt", { text: "Subject" }), el("dd", { text: s.subject })]),
+          el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]),
+          el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: s.format })]),
+        ])
+      );
+    });
+    asideChildren.push(
+      el("a", { class: "btn", attrs: { href: "booking.html#" + t.slug } }, [
+        document.createTextNode("Book with " + firstName(t.name)),
+      ])
+    );
+
+    return el("article", { class: "profile", attrs: { id: t.slug } }, [
+      el("div", { class: "profile-main" }, [
+        el("h2", { text: t.name }),
+        el("p", { class: "profile-subject", text: subjects }),
+        el("p", { class: "profile-credential", text: t.credential || "" }),
+        el("p", { class: "profile-bio", text: t.bio || "" }),
+      ]),
+      el("aside", { class: "profile-aside" }, asideChildren),
+    ]);
+  });
+  if (!articles.length) return;
+  root.replaceChildren.apply(root, articles);
+}
+
+function renderRatesTable(tutors) {
+  const root = document.getElementById("rates-body");
+  if (!root) return;
+
+  const rows = [];
+  tutors.forEach(function (t) {
+    (t.services || []).forEach(function (s) {
+      rows.push(
+        el("tr", {}, [
+          el("th", { attrs: { scope: "row" }, text: s.subject }),
+          el("td", { text: t.name }),
+          el("td", { class: "rate", text: formatRate(s.rate) }),
+          el("td", { text: s.format }),
+        ])
+      );
+    });
+  });
+  if (!rows.length) return;
+  root.replaceChildren.apply(root, rows);
+}
+
+function renderBooking(tutors) {
+  const tabsRoot = document.getElementById("booking-tabs");
+  const panelsRoot = document.getElementById("booking-panels");
+  if (!tabsRoot || !panelsRoot || !tutors.length) return;
+
+  const tabs = tutors.map(function (t, i) {
+    return el("button", {
+      class: "tab",
+      attrs: {
+        type: "button",
+        role: "tab",
+        id: "tab-" + t.slug,
+        "aria-controls": "panel-" + t.slug,
+        "aria-selected": i === 0 ? "true" : "false",
+        tabindex: i === 0 ? "0" : "-1",
+      },
+      text: t.name,
+    });
+  });
+
+  const panels = tutors.map(function (t, i) {
+    const services = t.services || [];
+    const subjects = services.map(function (s) { return s.subject; }).join(", ");
+    const multi = services.length > 1;
+
+    const specRows = [];
+    const bookLinks = [];
+    services.forEach(function (s) {
+      specRows.push(el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]));
+      specRows.push(el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: s.format })]));
+      bookLinks.push(
+        el("a", { class: "btn", attrs: { href: s.bookingUrl || "#", target: "_blank", rel: "noopener noreferrer" } }, [
+          document.createTextNode((multi ? s.subject + " — " : "") + "Open " + firstName(t.name) + "'s calendar"),
+        ])
+      );
+    });
+
+    const panel = el(
+      "div",
+      { class: "tabpanel", attrs: { role: "tabpanel", id: "panel-" + t.slug, "aria-labelledby": "tab-" + t.slug, tabindex: "0" } },
+      [
+        el("div", { class: "booking-panel" }, [
+          el("div", {}, [
+            el("h2", { text: t.name }),
+            el("p", { class: "profile-subject", text: subjects }),
+            el("p", { class: "lede", text: t.bio || "" }),
+          ]),
+          el("aside", {}, [
+            el("dl", { class: "spec-list" }, specRows),
+          ].concat(bookLinks, [
+            el("p", { class: "hint", text: "Opens in a new tab." }),
+          ])),
+        ]),
+      ]
+    );
+    panel.hidden = i !== 0;
+    return panel;
+  });
+
+  tabsRoot.replaceChildren.apply(tabsRoot, tabs);
+  panelsRoot.replaceChildren.apply(panelsRoot, panels);
+}
+
+/* ------------------------------------------------------------------ init -- */
+
+(async function init() {
+  let tutors;
+  try {
+    tutors = await fetchTutors();
+  } catch (err) {
+    console.error("Firm Foundation: could not load tutor data, showing fallback content.", err);
+    return;
+  }
+  if (!tutors.length) return;
+
+  renderSubjectsGrid(tutors);
+  renderTutorPreview(tutors);
+  renderTutorProfiles(tutors);
+  renderRatesTable(tutors);
+  renderBooking(tutors);
+
+  if (window.FF && typeof window.FF.initTabs === "function") {
+    window.FF.initTabs("#booking-tabs");
+  }
+})();

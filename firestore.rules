@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /tutors/{tutorId} {
+      allow read: if true;
+
+      allow update: if request.auth != null
+        && request.auth.uid == tutorId
+        && isValidTutor(request.resource.data);
+
+      allow create, delete: if false;
+    }
+
+    function isValidTutor(data) {
+      return data.name is string
+        && data.credential is string
+        && data.bio is string
+        && data.order is number
+        && data.active is bool
+        && data.services is list
+        && isValidServicesList(data.services);
+    }
+
+    // Firestore rules can't loop, so per-service validation is unrolled up
+    // to 6 entries — far more than any tutor is expected to add.
+    function isValidServicesList(services) {
+      return services.size() > 0 && services.size() <= 6
+        && (services.size() < 1 || isValidService(services[0]))
+        && (services.size() < 2 || isValidService(services[1]))
+        && (services.size() < 3 || isValidService(services[2]))
+        && (services.size() < 4 || isValidService(services[3]))
+        && (services.size() < 5 || isValidService(services[4]))
+        && (services.size() < 6 || isValidService(services[5]));
+    }
+
+    function isValidService(s) {
+      return s.type is string
+        && s.subject is string
+        && s.rate is number
+        && s.format in ['In person', 'Video', 'Both']
+        && s.bookingUrl is string;
+    }
+  }
+}

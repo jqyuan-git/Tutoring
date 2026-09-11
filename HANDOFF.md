@@ -5,12 +5,19 @@ Working notes for continuing this build in a local Claude Code session.
 
 ---
 
-## Current state (updated by a later session — see "Session 2" below)
+## Current state (updated in Session 3 — see "Session 3 handoff" below)
 
 **Build step 1 of 5 is complete and live.** All seven pages are scaffolded with
 hardcoded data and full styling, pushed to GitHub, and served via GitHub Pages.
-**Step 2 (Firebase) is in progress — login was started but not completed.**
-See "Session 2 handoff" near the bottom of this file for the exact resume point.
+
+**Steps 2–4 (Firebase, public data, admin auth, security rules) are code-complete
+but untested against real tutor data.** Firebase project `firm-foundation-tutors`
+exists, Firestore is live, security rules are deployed, and `tutors.js`/`admin.js`
+are written and locally smoke-tested (see "Session 3 handoff"). What's still
+missing: no tutor documents exist in Firestore yet, so the public pages are
+still showing their step-1 hardcoded fallback content (this is by design — see
+"Public page behavior" below — but it means nobody has seen real data flow
+through end-to-end). See "Session 3 handoff" near the bottom for exact next steps.
 
 ```
 Tutoring/
@@ -19,10 +26,15 @@ Tutoring/
 ├── services.html       rates table + format/payment
 ├── resources.html      static resource list (placeholders)
 ├── booking.html        tabs per tutor → Google Calendar links
-├── contact.html        one mailto card per tutor
-├── admin.html          login form + edit form (UI only, no auth wired)
+├── contact.html        one mailto card per tutor (static, not Firestore)
+├── admin.html          login form (Google + email/password) + edit form
 ├── css/style.css       complete design system, ~900 lines
 ├── js/main.js          nav toggle + accessible tabs (FF.initTabs)
+├── js/firebase-config.js   web config for project firm-foundation-tutors
+├── js/tutors.js         fetches `tutors` collection, renders public pages
+├── js/admin.js          Google/email login, load + save own tutor doc
+├── firestore.rules      public read, self-only update, no create/delete
+├── firebase.json / .firebaserc / firestore.indexes.json
 ├── images/             empty — no photos supplied
 └── HANDOFF.md          this file
 ```
@@ -103,6 +115,7 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
 | **Contact emails** | Hardcoded in `contact.html`, not Firestore | Keeps the `tutors` collection to public profile data, and gives the admin form one less field for non-technical tutors to manage. |
 | **Body-text neutrals** | Added `--ink #12243A`, `--ink-soft #4A5F78` | The brand palette covers headings and accents but had no long-form reading color. |
 | **Tutor photos** | None | No images were supplied. `images/` is empty. |
+| **Admin login method** | Google Sign-In **and** Email/Password, both live now. Phone sign-in was enabled in the Firebase Console but deferred — not wired into `admin.js` yet (needs a billing/reCAPTCHA check first, see below) | Decided in Session 3, revised twice. Google needs no password management; Email/Password is kept for tutors who'd rather use one, and lets Joshua pre-create accounts with temp passwords per the original plan. Both are tutor-only logins on `admin.html` — no parent-facing login exists (see "Ideas for later" below). Consequence for Google-only sign-ins: that Auth account's UID doesn't exist until the tutor signs in once, unlike an email/password account Joshua can pre-create. |
 
 ### Two bugs found and fixed during step 1
 
@@ -144,6 +157,16 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
    and `index.html` (his subject cell + tutor-preview card).
 2. ~~Confirm the three rates.~~ Updated to Joshua $60, Janissa $35, James $35
    (based on 2026 Irvine, CA tutoring market averages) — still worth a sanity check.
+
+---
+
+## Ideas for later (not in scope now)
+
+- **Parent login.** Joshua mentioned potentially wanting parents to be able
+  to log in too (e.g. phone-based accounts), separate from the tutor admin
+  login. No purpose/feature has been defined yet — don't build this until
+  there's a concrete use case (progress view? booking history?) to scope it
+  against. Noted here so it isn't forgotten, not because it's approved work.
 
 ---
 
@@ -204,8 +227,10 @@ DOM hooks already in place: `#subjects-grid`, `#tutor-preview`, `#tutor-profiles
 
 ### Step 3 — `admin.html` and the auth flow
 
-Not logged in: email + password form with clear error messaging.
-Logged in: a form pre-filled with **only that tutor's own record**. Editable —
+Not logged in: "Sign in with Google" button plus an email + password form,
+clear error messaging. (Phone sign-in is enabled in Firebase but not wired up
+yet — add later.) Logged in: a form pre-filled with **only that tutor's own
+record**. Editable —
 credential, bio, and per service: subject, rate, format, bookingUrl. Allow
 adding and removing services. Save writes to Firestore with success/error state.
 Log out button.
@@ -248,11 +273,16 @@ instructions. Confirm each step with Joshua before running it.**
 
 1. Create a Firebase project (or ask which existing one to use)
 2. Register a web app and pull the config into `js/firebase-config.js`
-3. Enable Email/Password authentication
-4. Create three Auth users — **ask him for their emails** and set temporary
-   passwords he can share
+3. Enable both Google and Email/Password as sign-in providers
+4. For tutors who'll use Email/Password: create their Auth user directly with
+   a temporary password Joshua can share. For tutors who'll use Google: they
+   need to sign in once via the deployed `admin.html` Google button (or a
+   temporary test page) before their Auth user + UID exist — **ask Joshua
+   which method each tutor prefers, and for Google users, their Google
+   account email** so he knows which one to expect in the Console
 5. Create Firestore in production mode
-6. Create the three tutor documents using the real Auth UIDs
+6. Create the three tutor documents using the real Auth UIDs (found in
+   Authentication → Users in the Console)
 7. Write and deploy `firestore.rules`
 
 **Still include the manual setup steps in the README as a fallback.**
@@ -309,6 +339,87 @@ before being cut off. Exact state:
   folder that resisted deletion all session (persistent file lock — likely
   OneDrive backup, antivirus, or an open Explorer window). Not the real
   project; safe to ignore or delete manually later.
+
+---
+
+## Session 3 handoff — resume here
+
+Firebase CLI login was completed (account `cjaaa100@gmail.com`). Project
+creation via the `firebase` CLI hit a `PERMISSION_DENIED` when attaching
+Firebase to a Google Cloud project — this looked transient but wasn't; it's a
+new-account restriction that only the Firebase Console web UI could get past.
+Same story for the Firestore database itself: `firebase firestore:databases:create`
+failed with "Cloud Firestore API has not been used in project ... before or is
+disabled" even after retrying, so that also had to be created via the Console.
+**If a future session hits `PERMISSION_DENIED` or "API not enabled" errors
+provisioning a brand-new Firebase project via CLI/API, don't retry the same
+command — go straight to console.firebase.google.com and do that one step
+there, then resume with the CLI.**
+
+### What's done
+
+- Firebase project: **`firm-foundation-tutors`** (created via Console after
+  CLI creation failed), linked in `.firebaserc` as the default project.
+- Web app registered; config written to `js/firebase-config.js`.
+- Sign-in providers enabled: **Google** and **Email/Password** (Phone was also
+  enabled in the Console but intentionally not wired into `admin.js` yet —
+  see the "Admin login method" decision above).
+- Firestore created: Standard edition, Firestore Native, `nam7` (West Coast US
+  multi-region — Joshua is in Irvine, CA), no backups (fine for a
+  3-document collection Joshua can recreate by hand).
+- `firestore.rules` written and **deployed** (public read, self-only update
+  with field validation, no client create/delete). `firebase.json` and
+  `firestore.indexes.json` also added (`indexes: []` — the public fetch
+  intentionally avoids needing a composite index; see next section).
+- `js/tutors.js` written and wired into `index.html`, `tutors.html`,
+  `services.html`, `booking.html` (not `contact.html` — emails stay static
+  per the existing decision). Fetches all `tutors` ordered by `order`,
+  filters `active` client-side in JS rather than in the Firestore query
+  (avoids needing a composite index for a 3-document collection). Builds all
+  DOM nodes via `createElement`/`textContent`, never `innerHTML` — tutor bios
+  and credentials will eventually be tutor-editable, so they're treated as
+  untrusted text, not HTML. On fetch failure or an empty result, it does
+  nothing and leaves the page's hardcoded step-1 markup exactly as it was —
+  that markup **is** the required fallback.
+- `js/admin.js` written and wired into `admin.html`. Google popup sign-in and
+  email/password sign-in both call through to real Firebase Auth; loads the
+  signed-in user's own doc by UID and shows a friendly message (not a broken
+  page) if no doc is linked yet; save writes only `credential`, `bio`, and
+  `services` (never `name`/`order`/`active`) via `updateDoc`, so those fields
+  are preserved untouched and still satisfy the rules' validation, which
+  checks the full resulting document. The services editor supports add/remove
+  and was built generically off whatever's in Firestore — no code changes
+  needed when the planned `athletics` service type shows up.
+- Local smoke test (static file server + gstack headless browser): homepage
+  loads with no console errors and correctly falls back to hardcoded content
+  (no Firestore docs exist yet, so `tutors.js` fetches an empty array and
+  bails, as designed). `admin.html` loads with no console errors, both login
+  options render, and submitting deliberately wrong email/password
+  credentials round-trips to real Firebase Auth and shows the friendly error
+  message. **Google sign-in was not fully tested** — headless Chromium
+  doesn't complete a real OAuth popup, and a `Cross-Origin-Opener-Policy
+  policy would block the window.closed call` console warning showed up
+  during that attempt. This is a known Firebase-popup-auth quirk (not a bug
+  in `admin.js`) and should just work in a real browser window, but **it
+  hasn't been verified with an actual Google sign-in yet — do that first in
+  the next session** before assuming it works end-to-end.
+
+### Where to pick up
+
+1. **No tutor documents exist in Firestore yet.** The public pages are still
+   showing step-1 hardcoded content because of this, not because of a bug.
+2. Proceed through the "Firebase provisioning" numbered list above,
+   starting from step 4 (getting each tutor's Auth account set up) — steps
+   1–3 and 5–7 are already done.
+3. Once at least one tutor doc exists, reload the public pages and confirm
+   real data actually renders (this hasn't been seen working end-to-end yet,
+   only smoke-tested against an empty collection).
+4. Actually complete a real Google sign-in on `admin.html` in a normal
+   (non-headless) browser to confirm that path works, then test saving a
+   change and confirming it appears on the public pages.
+5. Continue into Step 4's remaining piece (README) and Step 5 (this repo is
+   already pushed and Pages is already live from step 1, so Step 5 may
+   already be effectively done — just double check).
 
 ---
 
