@@ -30,6 +30,19 @@ function formatRate(rate) {
   return "$" + rate + "/hr";
 }
 
+/* Stored format values ("In person" / "Video" / "Both") stay as the exact
+   enum admin.js and firestore.rules validate against — only the public
+   display text is friendlier. */
+const FORMAT_LABELS = {
+  "In person": "In-Person",
+  "Video": "Online",
+  "Both": "In-Person/Online",
+};
+
+function formatLabel(format) {
+  return FORMAT_LABELS[format] || format;
+}
+
 /* Tutors can set their own LinkedIn URL via admin.html. Only render it as a
    link if it's actually http(s) — a stray "javascript:" value must never
    reach an href, or clicking it would run arbitrary script for any visitor. */
@@ -129,7 +142,7 @@ function renderTutorProfiles(tutors) {
         el("dl", { class: "spec-list" }, [
           el("div", {}, [el("dt", { text: "Subject" }), el("dd", { text: s.subject })]),
           el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]),
-          el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: s.format })]),
+          el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]),
         ])
       );
     });
@@ -175,7 +188,7 @@ function renderRatesTable(tutors) {
           el("th", { attrs: { scope: "row" }, text: s.subject }),
           el("td", { text: t.name }),
           el("td", { class: "rate", text: formatRate(s.rate) }),
-          el("td", { text: s.format }),
+          el("td", { text: formatLabel(s.format) }),
         ])
       );
     });
@@ -213,7 +226,7 @@ function renderBooking(tutors) {
     const bookLinks = [];
     services.forEach(function (s) {
       specRows.push(el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]));
-      specRows.push(el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: s.format })]));
+      specRows.push(el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]));
       bookLinks.push(
         el("a", { class: "btn", attrs: { href: s.bookingUrl || "#", target: "_blank", rel: "noopener noreferrer" } }, [
           document.createTextNode((multi ? s.subject + " — " : "") + "Open " + firstName(t.name) + "'s calendar"),
