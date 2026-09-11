@@ -43,6 +43,40 @@ const nameField = document.getElementById("f-name");
 const credentialField = document.getElementById("f-credential");
 const bioField = document.getElementById("f-bio");
 
+/* Google (and most identity providers) refuse to sign in reliably inside a
+   third-party iframe — e.g. this page embedded in a Canvas course page — as
+   an anti-clickjacking measure. Rather than chase an unreliable inline
+   sign-in, detect that case and send the tutor to a real tab instead. */
+const isFramed = window.self !== window.top;
+
+function showFramedNotice() {
+  loginView.hidden = false;
+  editorView.hidden = true;
+
+  const panel = loginView.querySelector(".panel");
+  panel.replaceChildren();
+
+  const heading = document.createElement("h2");
+  heading.style.fontSize = "1.3rem";
+  heading.style.marginBottom = "1rem";
+  heading.textContent = "Log in";
+  panel.appendChild(heading);
+
+  const message = document.createElement("p");
+  message.style.marginBottom = "20px";
+  message.textContent = "For security, signing in isn't supported inside an embedded page. Open this page in its own tab to log in.";
+  panel.appendChild(message);
+
+  const openLink = document.createElement("a");
+  openLink.className = "btn";
+  openLink.style.width = "100%";
+  openLink.href = window.location.href;
+  openLink.target = "_blank";
+  openLink.rel = "noopener";
+  openLink.textContent = "Open in a new tab";
+  panel.appendChild(openLink);
+}
+
 let currentUid = null;
 let serviceCounter = 0;
 
@@ -223,10 +257,14 @@ async function showEditor(user) {
   renderServices(data.services);
 }
 
-onAuthStateChanged(auth, function (user) {
-  if (user) showEditor(user);
-  else showLogin();
-});
+if (isFramed) {
+  showFramedNotice();
+} else {
+  onAuthStateChanged(auth, function (user) {
+    if (user) showEditor(user);
+    else showLogin();
+  });
+}
 
 /* ---------------------------------------------------------------- auth -- */
 
