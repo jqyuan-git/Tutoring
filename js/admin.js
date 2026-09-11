@@ -42,6 +42,7 @@ const saveError = document.getElementById("save-error");
 const nameField = document.getElementById("f-name");
 const credentialField = document.getElementById("f-credential");
 const bioField = document.getElementById("f-bio");
+const linkedinField = document.getElementById("f-linkedin");
 
 /* Google (and most identity providers) refuse to sign in reliably inside a
    third-party iframe — e.g. this page embedded in a Canvas course page — as
@@ -254,6 +255,7 @@ async function showEditor(user) {
   nameField.value = data.name || "";
   credentialField.value = data.credential || "";
   bioField.value = data.bio || "";
+  linkedinField.value = data.linkedin || "";
   renderServices(data.services);
 }
 
@@ -312,10 +314,25 @@ editorForm.addEventListener("submit", async function (e) {
     return;
   }
 
+  const linkedin = linkedinField.value.trim();
+  if (linkedin) {
+    let parsed;
+    try {
+      parsed = new URL(linkedin);
+    } catch (err) {
+      parsed = null;
+    }
+    if (!parsed || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) {
+      showSaveStatus(false, "That LinkedIn URL doesn't look valid. Leave it blank if you don't want a button.");
+      return;
+    }
+  }
+
   try {
     await updateDoc(doc(db, "tutors", currentUid), {
       credential: credentialField.value.trim(),
       bio: bioField.value.trim(),
+      linkedin: linkedin,
       services: services,
     });
     showSaveStatus(true, "Saved.");

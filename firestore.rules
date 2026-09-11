@@ -20,7 +20,8 @@ service cloud.firestore {
         && data.order is number
         && data.active is bool
         && data.services is list
-        && isValidServicesList(data.services);
+        && isValidServicesList(data.services)
+        && (!('linkedin' in data) || data.linkedin is string);
     }
 
     // Firestore rules can't loop, so per-service validation is unrolled up

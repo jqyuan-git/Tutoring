@@ -30,6 +30,18 @@ function formatRate(rate) {
   return "$" + rate + "/hr";
 }
 
+/* Tutors can set their own LinkedIn URL via admin.html. Only render it as a
+   link if it's actually http(s) — a stray "javascript:" value must never
+   reach an href, or clicking it would run arbitrary script for any visitor. */
+function safeHttpUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? value : null;
+  } catch (err) {
+    return null;
+  }
+}
+
 /* Builds a DOM element without ever parsing a string as HTML — tutor bios
    and credentials will eventually come from tutors editing their own
    profile, so they're never trustworthy enough for innerHTML. */
@@ -127,13 +139,23 @@ function renderTutorProfiles(tutors) {
       ])
     );
 
+    const linkedinUrl = t.linkedin ? safeHttpUrl(t.linkedin) : null;
+    const profileMainChildren = [
+      el("h2", { text: t.name }),
+      el("p", { class: "profile-subject", text: subjects }),
+      el("p", { class: "profile-credential", text: t.credential || "" }),
+      el("p", { class: "profile-bio", text: t.bio || "" }),
+    ];
+    if (linkedinUrl) {
+      profileMainChildren.push(
+        el("a", { class: "arrow-link", attrs: { href: linkedinUrl, target: "_blank", rel: "noopener noreferrer" } }, [
+          document.createTextNode("View LinkedIn →"),
+        ])
+      );
+    }
+
     return el("article", { class: "profile", attrs: { id: t.slug } }, [
-      el("div", { class: "profile-main" }, [
-        el("h2", { text: t.name }),
-        el("p", { class: "profile-subject", text: subjects }),
-        el("p", { class: "profile-credential", text: t.credential || "" }),
-        el("p", { class: "profile-bio", text: t.bio || "" }),
-      ]),
+      el("div", { class: "profile-main" }, profileMainChildren),
       el("aside", { class: "profile-aside" }, asideChildren),
     ]);
   });

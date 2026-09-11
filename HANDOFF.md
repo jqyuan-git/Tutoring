@@ -189,6 +189,7 @@ security comes from Firestore rules.**
   "name": "Joshua Yuan",
   "credential": "High school physics teacher",
   "bio": "Focuses on building conceptual understanding first...",
+  "linkedin": "https://www.linkedin.com/in/joshua-yuan-716238281",
   "order": 1,
   "active": true,
   "services": [
@@ -210,6 +211,14 @@ security comes from Firestore rules.**
   additional services appear automatically with no code changes.**
 - `active: false` hides a tutor from public pages without deleting the record
 - `order` controls display sequence
+- `linkedin` is **optional** (added Session 3, at Joshua's request) — a
+  tutor sets their own via the "LinkedIn URL" field on `admin.html`. When
+  present, `tutors.html` shows a "View LinkedIn" button on that tutor's
+  profile. `firestore.rules` only checks it's a string when present;
+  `admin.js` and `tutors.js` both separately reject anything that isn't an
+  `http`/`https` URL before it can end up in an `href` — otherwise a
+  malicious value like `javascript:...` in that field could execute script
+  for any visitor who clicked the button.
 
 **Public page behavior.** Fetch tutor data once per page load, ordered by
 `order`, filtered to `active: true`. Show a lightweight loading state, not a
@@ -397,13 +406,21 @@ there, then resume with the CLI.**
   bails, as designed). `admin.html` loads with no console errors, both login
   options render, and submitting deliberately wrong email/password
   credentials round-trips to real Firebase Auth and shows the friendly error
-  message. **Google sign-in was not fully tested** — headless Chromium
-  doesn't complete a real OAuth popup, and a `Cross-Origin-Opener-Policy
-  policy would block the window.closed call` console warning showed up
-  during that attempt. This is a known Firebase-popup-auth quirk (not a bug
-  in `admin.js`) and should just work in a real browser window, but **it
-  hasn't been verified with an actual Google sign-in yet — do that first in
-  the next session** before assuming it works end-to-end.
+  message. Google sign-in itself couldn't be completed in headless Chromium
+  (a `Cross-Origin-Opener-Policy policy would block the window.closed call`
+  console warning showed up), but **was subsequently confirmed working in a
+  real browser on the live GitHub Pages site** — it needed
+  `jqyuan-git.github.io` added to Firebase Console → Authentication →
+  Settings → Authorized domains first (not on that list by default; only
+  `localhost` and the project's own `*.firebaseapp.com` domain are). Joshua
+  signed in successfully afterward and got the expected "no profile linked
+  yet" message, confirming the whole chain works end-to-end except for the
+  Firestore doc itself. His UID is `da9pYiV86jOXHWJYilCyPDF2P8R2` (found via
+  `firebase auth:export`) — **his tutor document still needs to be created**
+  (attempted via CLI/REST using the CLI's own OAuth session, but that path
+  was blocked as inappropriate credential use; use the Console UI's
+  "Start collection" flow in Firestore Database → Data instead, with that
+  UID as the document ID).
 
 ### Where to pick up
 
@@ -428,11 +445,16 @@ there, then resume with the CLI.**
 
 - [ ] Janissa's credential
 - [ ] Janissa's bio
-- [ ] James's bio
+- [x] James's bio and credential — filled in from his resume (Session 3): Biological
+      Sciences major at UC Davis (pre-dental), recently completed AP Calculus AB & BC,
+      volleyball coaching experience informs his tutoring style. Draft wording, not
+      reviewed by James himself — sanity check before treating as final.
 - [x] All three rates (set to Irvine-average-based $60 / $35 / $35 — sanity check recommended)
 - [x] Joshua's math service — added: any HS math level, $60/hr
 - [ ] Booking URLs (all three — currently `calendar.app.google/REPLACE-WITH-*`)
-- [ ] Contact emails (all three — currently `REPLACE-*@example.com`)
+- [x] James's contact email — `jamesyim2004@gmail.com` (from his resume)
+- [ ] Contact emails — Joshua's and Janissa's still `REPLACE-*@example.com`
 - [ ] Payment method (`services.html`)
 - [ ] Cancellation policy (`services.html`)
 - [ ] Resource links and titles (`resources.html`)
+- [x] Joshua's LinkedIn link added to his `tutors.html` profile (Session 3)
