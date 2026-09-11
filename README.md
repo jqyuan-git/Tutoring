@@ -134,10 +134,9 @@ instead.
 
 ## Remaining placeholders
 
-- [x] Janissa's credential and bio (from her resume; also added Honors
-      Chemistry as a second subject alongside Biology)
-- [ ] Joshua's real contact email (`contact.html` — James's and Janissa's
-      are already filled in)
+- [x] Janissa's credential and bio (from her resume; also added Chemistry
+      as a second subject alongside Biology)
+- [x] All three tutors' contact emails filled in (`contact.html`)
 - [ ] Booking URLs for all three tutors (currently placeholder links)
 - [x] Payment method — Venmo, per-tutor link editable via `admin.html`
 - [ ] Cancellation policy (`services.html`)

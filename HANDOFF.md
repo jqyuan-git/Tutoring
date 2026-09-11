@@ -487,7 +487,7 @@ there, then resume with the CLI.**
 - [ ] Booking URLs (all three — currently `calendar.app.google/REPLACE-WITH-*`)
 - [x] James's contact email — `jamesyim2004@gmail.com` (from his resume)
 - [x] Janissa's contact email — `janissa6646@gmail.com` (from her resume, Session 3)
-- [ ] Joshua's contact email — still `REPLACE-JOSHUA@example.com`
+- [x] Joshua's contact email — `joshuaaa100@icloud.com`
 - [x] Payment method — Venmo, per-tutor link editable via `admin.html` (Session 3)
 - [ ] Cancellation policy (`services.html`)
 - [ ] Resource links and titles (`resources.html`)
