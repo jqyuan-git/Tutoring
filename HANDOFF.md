@@ -415,13 +415,26 @@ there, then resume with the CLI.**
   Settings → Authorized domains first (not on that list by default; only
   `localhost` and the project's own `*.firebaseapp.com` domain are). Joshua
   signed in successfully afterward and got the expected "no profile linked
-  yet" message, confirming the whole chain works end-to-end except for the
-  Firestore doc itself. His UID is `da9pYiV86jOXHWJYilCyPDF2P8R2` (found via
-  `firebase auth:export`) — **his tutor document still needs to be created**
-  (attempted via CLI/REST using the CLI's own OAuth session, but that path
-  was blocked as inappropriate credential use; use the Console UI's
-  "Start collection" flow in Firestore Database → Data instead, with that
-  UID as the document ID).
+  yet" message, confirming the whole chain works end-to-end. His UID is
+  `da9pYiV86jOXHWJYilCyPDF2P8R2` (found via `firebase auth:export`), and his
+  tutor document now exists (created manually via the Console's
+  "Start collection" flow).
+
+  **For any future direct Firestore edits that can't go through admin.html**
+  (e.g. adding a field to an existing doc): don't try to reuse the `firebase`
+  CLI's own login session to call the Firestore REST API directly — that's
+  inappropriate credential use and gets blocked. **Google Cloud Shell is the
+  right tool for this** — it's a real terminal in the browser, already
+  authenticated as whoever opened it, with `gcloud` preinstalled. From there,
+  `gcloud auth print-access-token` gives a valid bearer token for that
+  person's own session, which works directly against the Firestore REST API.
+  Always pass `updateMask.fieldPaths=<field>` for each field being touched —
+  a PATCH without an update mask replaces the *entire* document with only
+  the fields in the request body, silently deleting everything else. Used
+  successfully this session to add `linkedin` and `venmo` to Joshua's
+  existing document without disturbing anything else on it. ("Gemini in
+  Firebase" was tried first as a lower-effort alternative but didn't
+  actually make the edit — Cloud Shell is the reliable fallback.)
 
 ### Where to pick up
 
