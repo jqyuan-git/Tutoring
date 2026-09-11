@@ -96,7 +96,7 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
 
 | Decision | What was done | Why |
 |---|---|---|
-| **Rates** | Joshua $45, Janissa $45, James $40 | ⚠️ **Invented placeholders.** The design needed real numbers to show tabular figures aligning. Must be confirmed. |
+| **Rates** | Joshua $60, Janissa $35, James $35 | Set from 2026 Irvine, CA private-tutor market averages (general average ~$41/hr, math tutors ~$31-32/hr, STEM running 15-30% above humanities). Joshua priced above average to reflect his credentialed classroom-teacher status; Janissa and James priced near the local average as non-teacher tutors. Still confirm these match what you actually want to charge. |
 | **Format** | `Both` for all three | Matched the example JSON in the brief. |
 | **Contact emails** | Hardcoded in `contact.html`, not Firestore | Keeps the `tutors` collection to public profile data, and gives the admin form one less field for non-technical tutors to manage. |
 | **Body-text neutrals** | Added `--ink #12243A`, `--ink-soft #4A5F78` | The brand palette covers headings and accents but had no long-form reading color. |
@@ -132,8 +132,8 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
    - Need: rate for his math, what level he covers, and whether he overlaps with
      James (who covers through AP Calculus) or splits the range.
    - The services table will then list two tutors under Math — confirm that's fine.
-2. **Confirm the three rates.** Currently invented: Joshua $45, Janissa $45,
-   James $40.
+2. ~~Confirm the three rates.~~ Updated to Joshua $60, Janissa $35, James $35
+   (based on 2026 Irvine, CA tutoring market averages) — still worth a sanity check.
 
 ---
 
@@ -255,7 +255,7 @@ Confirm each step with him before running it.**
 - [ ] Janissa's credential
 - [ ] Janissa's bio
 - [ ] James's bio
-- [ ] All three rates (currently invented: $45 / $45 / $40)
+- [x] All three rates (set to Irvine-average-based $60 / $35 / $35 — sanity check recommended)
 - [ ] Joshua's math service — rate, level, subject label
 - [ ] Booking URLs (all three — currently `calendar.app.google/REPLACE-WITH-*`)
 - [ ] Contact emails (all three — currently `REPLACE-*@example.com`)
