@@ -168,7 +168,8 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
    (based on 2026 Irvine, CA tutoring market averages) — still worth a sanity check.
 3. ~~Janissa also tutors Chemistry~~ Resolved (Session 3): her resume showed
    real Honors Chemistry tutoring experience, not just Biology. Added as a
-   **second entry in her `services` array** (`subject: "Honors Chemistry"`),
+   **second entry in her `services` array** (`subject: "Chemistry"` — shown
+   without "Honors" per Joshua's request),
    same $35/hr rate as Biology. Reflected the same way Joshua's second
    subject was: `tutors.html` (second spec-list block), `services.html`
    (second table row), `index.html` (her subject cell gained a mention +
@@ -476,7 +477,7 @@ there, then resume with the CLI.**
 ## Placeholder checklist
 
 - [x] Janissa's credential and bio — filled in from her resume (Session 3), plus
-      added Honors Chemistry as a second subject (see "Open questions" above)
+      added Chemistry as a second subject (see "Open questions" above)
 - [x] James's bio and credential — filled in from his resume (Session 3): Biological
       Sciences major at UC Davis (pre-dental), recently completed AP Calculus AB & BC,
       volleyball coaching experience informs his tutoring style. Draft wording, not
