@@ -58,6 +58,7 @@ Auth UID**:
   "credential": "High school physics teacher",
   "bio": "Focuses on building conceptual understanding first...",
   "linkedin": "https://www.linkedin.com/in/joshua-yuan-716238281",
+  "venmo": "https://venmo.com/u/joshua-yuan",
   "order": 1,
   "active": true,
   "services": [
@@ -82,6 +83,10 @@ Auth UID**:
   coaching) will render automatically with no code changes needed.
 - `linkedin` is optional — a tutor sets it themselves via `admin.html`; if
   present, a "View LinkedIn" button shows on their `tutors.html` profile.
+- `venmo` is optional, same pattern — a tutor's own Venmo link, shown as a
+  "Pay via Venmo" button on their profile and on their `booking.html` panel.
+  Payment is between the tutor and the family; the site never handles money
+  directly.
 - `active: false` hides a tutor from public pages without deleting them.
 - `order` controls display order across all pages.
 - Public names are shown as "First L." (e.g. "Joshua Y.") everywhere except
@@ -133,7 +138,7 @@ instead.
 - [ ] Joshua's and Janissa's real contact emails (`contact.html` — James's
       is already filled in)
 - [ ] Booking URLs for all three tutors (currently placeholder links)
-- [ ] Payment method (`services.html`)
+- [x] Payment method — Venmo, per-tutor link editable via `admin.html`
 - [ ] Cancellation policy (`services.html`)
 - [ ] Resource links and titles (`resources.html`)
 - [ ] Janissa's and James's Firestore documents (waiting on each of them to

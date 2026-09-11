@@ -117,6 +117,7 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
 | **Tutor photos** | None | No images were supplied. `images/` is empty. |
 | **Admin page inside an iframe (e.g. embedded in Canvas)** | Detects `window.self !== window.top` and shows a plain "Open in a new tab" button instead of attempting sign-in inline | Google (and most identity providers) block or unreliably support OAuth popups inside third-party iframes as an anti-clickjacking measure — this isn't fixable from our side, so the page just routes around it. Public pages have no such restriction and can be embedded anywhere without changes. |
 | **Admin login method** | Google Sign-In **and** Email/Password, both live now. Phone sign-in was enabled in the Firebase Console but deferred — not wired into `admin.js` yet (needs a billing/reCAPTCHA check first, see below) | Decided in Session 3, revised twice. Google needs no password management; Email/Password is kept for tutors who'd rather use one, and lets Joshua pre-create accounts with temp passwords per the original plan. Both are tutor-only logins on `admin.html` — no parent-facing login exists (see "Ideas for later" below). Consequence for Google-only sign-ins: that Auth account's UID doesn't exist until the tutor signs in once, unlike an email/password account Joshua can pre-create. |
+| **Payment method** | Venmo — each tutor sets their own Venmo link via `admin.html` (`venmo` field, same pattern as `linkedin`), shown as a "Pay via Venmo" button on their `tutors.html` profile and `booking.html` panel | Decided in Session 3. Keeps money entirely between each tutor and the family — the site never touches payment itself. `services.html`'s payment section now just names Venmo as the method and points to the per-tutor buttons rather than showing one shared account. |
 
 ### Two bugs found and fixed during step 1
 
@@ -454,7 +455,7 @@ there, then resume with the CLI.**
 - [ ] Booking URLs (all three — currently `calendar.app.google/REPLACE-WITH-*`)
 - [x] James's contact email — `jamesyim2004@gmail.com` (from his resume)
 - [ ] Contact emails — Joshua's and Janissa's still `REPLACE-*@example.com`
-- [ ] Payment method (`services.html`)
+- [x] Payment method — Venmo, per-tutor link editable via `admin.html` (Session 3)
 - [ ] Cancellation policy (`services.html`)
 - [ ] Resource links and titles (`resources.html`)
 - [x] Joshua's LinkedIn link added to his `tutors.html` profile (Session 3)

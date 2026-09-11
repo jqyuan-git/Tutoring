@@ -162,6 +162,7 @@ function renderTutorProfiles(tutors) {
     );
 
     const linkedinUrl = t.linkedin ? safeHttpUrl(t.linkedin) : null;
+    const venmoUrl = t.venmo ? safeHttpUrl(t.venmo) : null;
     const profileMainChildren = [
       el("h2", { text: displayName(t.name) }),
       el("p", { class: "profile-subject", text: subjects }),
@@ -172,6 +173,13 @@ function renderTutorProfiles(tutors) {
       profileMainChildren.push(
         el("a", { class: "arrow-link", attrs: { href: linkedinUrl, target: "_blank", rel: "noopener noreferrer" } }, [
           document.createTextNode("View LinkedIn →"),
+        ])
+      );
+    }
+    if (venmoUrl) {
+      profileMainChildren.push(
+        el("a", { class: "arrow-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer" } }, [
+          document.createTextNode("Pay via Venmo →"),
         ])
       );
     }
@@ -243,6 +251,17 @@ function renderBooking(tutors) {
       );
     });
 
+    const venmoUrl = t.venmo ? safeHttpUrl(t.venmo) : null;
+    const asideChildren = [el("dl", { class: "spec-list" }, specRows)].concat(bookLinks);
+    if (venmoUrl) {
+      asideChildren.push(
+        el("a", { class: "arrow-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", style: "display:block;margin-top:12px;" } }, [
+          document.createTextNode("Pay via Venmo →"),
+        ])
+      );
+    }
+    asideChildren.push(el("p", { class: "hint", text: "Opens in a new tab." }));
+
     const panel = el(
       "div",
       { class: "tabpanel", attrs: { role: "tabpanel", id: "panel-" + t.slug, "aria-labelledby": "tab-" + t.slug, tabindex: "0" } },
@@ -253,11 +272,7 @@ function renderBooking(tutors) {
             el("p", { class: "profile-subject", text: subjects }),
             el("p", { class: "lede", text: t.bio || "" }),
           ]),
-          el("aside", {}, [
-            el("dl", { class: "spec-list" }, specRows),
-          ].concat(bookLinks, [
-            el("p", { class: "hint", text: "Opens in a new tab." }),
-          ])),
+          el("aside", {}, asideChildren),
         ]),
       ]
     );

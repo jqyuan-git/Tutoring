@@ -43,6 +43,7 @@ const nameField = document.getElementById("f-name");
 const credentialField = document.getElementById("f-credential");
 const bioField = document.getElementById("f-bio");
 const linkedinField = document.getElementById("f-linkedin");
+const venmoField = document.getElementById("f-venmo");
 
 /* Google (and most identity providers) refuse to sign in reliably inside a
    third-party iframe — e.g. this page embedded in a Canvas course page — as
@@ -97,6 +98,15 @@ function showSaveStatus(ok, message) {
   saveOk.hidden = !ok;
   saveError.hidden = ok;
   (ok ? saveOk : saveError).textContent = message;
+}
+
+function isHttpUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch (err) {
+    return false;
+  }
 }
 
 /* ---------------------------------------------------------- services UI -- */
@@ -256,6 +266,7 @@ async function showEditor(user) {
   credentialField.value = data.credential || "";
   bioField.value = data.bio || "";
   linkedinField.value = data.linkedin || "";
+  venmoField.value = data.venmo || "";
   renderServices(data.services);
 }
 
@@ -315,17 +326,15 @@ editorForm.addEventListener("submit", async function (e) {
   }
 
   const linkedin = linkedinField.value.trim();
-  if (linkedin) {
-    let parsed;
-    try {
-      parsed = new URL(linkedin);
-    } catch (err) {
-      parsed = null;
-    }
-    if (!parsed || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) {
-      showSaveStatus(false, "That LinkedIn URL doesn't look valid. Leave it blank if you don't want a button.");
-      return;
-    }
+  if (linkedin && !isHttpUrl(linkedin)) {
+    showSaveStatus(false, "That LinkedIn URL doesn't look valid. Leave it blank if you don't want a button.");
+    return;
+  }
+
+  const venmo = venmoField.value.trim();
+  if (venmo && !isHttpUrl(venmo)) {
+    showSaveStatus(false, "That Venmo link doesn't look valid. Leave it blank if you don't want a payment link.");
+    return;
   }
 
   try {
@@ -333,6 +342,7 @@ editorForm.addEventListener("submit", async function (e) {
       credential: credentialField.value.trim(),
       bio: bioField.value.trim(),
       linkedin: linkedin,
+      venmo: venmo,
       services: services,
     });
     showSaveStatus(true, "Saved.");
