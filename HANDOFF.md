@@ -124,14 +124,12 @@ focus, `prefers-reduced-motion`, semantic HTML, proper heading hierarchy, alt te
 
 ## Open questions — need Joshua's answers before proceeding
 
-1. **Joshua also tutors math** (in addition to Physics & Science). How should
-   this be modeled?
-   - Recommended: a **second entry in his `services` array** (`subject: "Math"`),
-     which keeps physics and math priced and booked separately and exercises the
-     array as designed.
-   - Need: rate for his math, what level he covers, and whether he overlaps with
-     James (who covers through AP Calculus) or splits the range.
-   - The services table will then list two tutors under Math — confirm that's fine.
+1. ~~Joshua also tutors math~~ Resolved: modeled as a **second entry in his
+   `services` array** (`subject: "Any high school math"`), same $60/hr rate as
+   his physics service, no level restriction — he covers any HS math level, so
+   there's deliberate overlap with James's range. Reflected in `tutors.html`
+   (second spec-list block on his profile), `services.html` (second table row),
+   and `index.html` (his subject cell + tutor-preview card).
 2. ~~Confirm the three rates.~~ Updated to Joshua $60, Janissa $35, James $35
    (based on 2026 Irvine, CA tutoring market averages) — still worth a sanity check.
 
@@ -256,7 +254,7 @@ Confirm each step with him before running it.**
 - [ ] Janissa's bio
 - [ ] James's bio
 - [x] All three rates (set to Irvine-average-based $60 / $35 / $35 — sanity check recommended)
-- [ ] Joshua's math service — rate, level, subject label
+- [x] Joshua's math service — added: any HS math level, $60/hr
 - [ ] Booking URLs (all three — currently `calendar.app.google/REPLACE-WITH-*`)
 - [ ] Contact emails (all three — currently `REPLACE-*@example.com`)
 - [ ] Payment method (`services.html`)
