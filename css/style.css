@@ -416,7 +416,7 @@ td.rate,
   align-items: center;
   gap: 6px;
 }
-.icon-link svg { width: 16px; height: 16px; flex: none; }
+.icon-link svg { width: 24px; height: 24px; flex: none; }
 
 .profile-main .arrow-link + .arrow-link { margin-left: 20px; }
 

@@ -209,9 +209,8 @@ function renderTutorProfiles(tutors) {
     }
     if (venmoUrl) {
       profileMainChildren.push(
-        el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer" } }, [
+        el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Venmo" } }, [
           venmoIcon(),
-          document.createTextNode("Venmo"),
         ])
       );
     }
@@ -287,9 +286,8 @@ function renderBooking(tutors) {
     const asideChildren = [el("dl", { class: "spec-list" }, specRows)].concat(bookLinks);
     if (venmoUrl) {
       asideChildren.push(
-        el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", style: "display:flex;margin-top:12px;" } }, [
+        el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Venmo", style: "display:flex;margin-top:12px;" } }, [
           venmoIcon(),
-          document.createTextNode("Venmo"),
         ])
       );
     }
