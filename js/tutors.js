@@ -64,6 +64,25 @@ function safeHttpUrl(value) {
   }
 }
 
+/* Built via createElementNS, not innerHTML — same reasoning as el() below,
+   this is a fixed developer-authored icon, but keeping it out of innerHTML
+   entirely means there's never a temptation to interpolate anything into it. */
+function linkedinIcon() {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 448 512");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const path = document.createElementNS(NS, "path");
+  path.setAttribute("fill", "currentColor");
+  path.setAttribute(
+    "d",
+    "M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"
+  );
+  svg.appendChild(path);
+  return svg;
+}
+
 /* Builds a DOM element without ever parsing a string as HTML — tutor bios
    and credentials will eventually come from tutors editing their own
    profile, so they're never trustworthy enough for innerHTML. */
@@ -171,8 +190,9 @@ function renderTutorProfiles(tutors) {
     ];
     if (linkedinUrl) {
       profileMainChildren.push(
-        el("a", { class: "arrow-link", attrs: { href: linkedinUrl, target: "_blank", rel: "noopener noreferrer" } }, [
-          document.createTextNode("View LinkedIn →"),
+        el("a", { class: "arrow-link icon-link", attrs: { href: linkedinUrl, target: "_blank", rel: "noopener noreferrer" } }, [
+          linkedinIcon(),
+          document.createTextNode("LinkedIn"),
         ])
       );
     }

@@ -411,6 +411,15 @@ td.rate,
 }
 .arrow-link:hover { color: var(--navy); border-bottom-color: var(--navy); }
 
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.icon-link svg { width: 16px; height: 16px; flex: none; }
+
+.profile-main .arrow-link + .arrow-link { margin-left: 20px; }
+
 .chips {
   display: flex;
   flex-wrap: wrap;
