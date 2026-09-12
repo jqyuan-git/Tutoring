@@ -420,6 +420,9 @@ td.rate,
 
 .profile-main .arrow-link + .arrow-link { margin-left: 20px; }
 
+.booking-panel aside .btn { display: block; }
+.booking-panel aside .btn + .btn { margin-top: 10px; }
+
 .chips {
   display: flex;
   flex-wrap: wrap;
