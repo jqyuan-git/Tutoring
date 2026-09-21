@@ -5,7 +5,7 @@ Working notes for continuing this build in a local Claude Code session.
 
 ---
 
-## Current state (updated in Session 3 — see "Session 3 handoff" below)
+## Current state (updated in Session 5 — see "Session 5 handoff" below)
 
 **Build step 1 of 5 is complete and live.** All seven pages are scaffolded with
 hardcoded data and full styling, pushed to GitHub, and served via GitHub Pages.
@@ -23,19 +23,25 @@ through end-to-end). See "Session 3 handoff" near the bottom for exact next step
 Tutoring/
 ├── index.html          hero + what we cover + tutor previews + CTA
 ├── tutors.html         full profile per tutor
-├── services.html       rates table + format/payment
-├── resources.html      static resource list (placeholders)
+├── services.html       rates table + format/payment/cancellation policy
+├── resources.html      curated free external study links
+├── faq.html            accordion FAQ (Session 4, no JS — native <details>)
 ├── booking.html        tabs per tutor → Google Calendar links
 ├── contact.html        one mailto card per tutor (static, not Firestore)
 ├── admin.html          login form (Google + email/password) + edit form
-├── css/style.css       complete design system, ~900 lines
+├── 404.html            custom not-found page (Session 4)
+├── robots.txt          Session 4 — disallows admin.html, points to sitemap
+├── sitemap.xml         Session 4 — lists all public pages
+├── css/style.css       complete design system, ~1000 lines
 ├── js/main.js          nav toggle + accessible tabs (FF.initTabs)
 ├── js/firebase-config.js   web config for project firm-foundation-tutors
 ├── js/tutors.js         fetches `tutors` collection, renders public pages
 ├── js/admin.js          Google/email login, load + save own tutor doc
+├── scripts/dev-server.js   Session 4 — zero-dependency local static server
+├── .claude/launch.json  Session 4 — lets the Browser pane run dev-server.js
 ├── firestore.rules      public read, self-only update, no create/delete
 ├── firebase.json / .firebaserc / firestore.indexes.json
-├── images/             empty — no photos supplied
+├── images/             favicon.svg only (Session 4) — no tutor photos supplied
 └── HANDOFF.md          this file
 ```
 
@@ -474,6 +480,140 @@ there, then resume with the CLI.**
 
 ---
 
+## Session 4 handoff — resume here
+
+This session added site features beyond the original 7-page build, rather
+than continuing Firebase provisioning. Nothing about the Firebase/Firestore
+state described in "Session 3 handoff" changed — that section is still
+accurate and still the next thing to pick up (Janissa's and James's Firestore
+documents still don't exist).
+
+### What's done
+
+- **New `faq.html`** — 10-question accordion (native `<details>`/`<summary>`,
+  no JS) covering scheduling, pricing, payment, cancellation, format, and
+  commitment questions. Added to the nav and footer on every public page
+  (not `admin.html`, which keeps its own minimal nav).
+- **`resources.html` rewritten** — the seven `[RESOURCE TITLE]` placeholders
+  are gone, replaced with six real, verified links: Khan Academy's Math,
+  Biology, Chemistry, and Physics courses, plus Paul's Online Math Notes and
+  PhET Interactive Simulations. **Important:** Khan Academy reorganized its
+  science URLs at some point — the obvious `/science/biology`,
+  `/science/chemistry`, and `/science/physics` paths now redirect to pages
+  Khan Academy itself labels "archive... not being updated with new
+  content." Verified the current replacements in a real browser before
+  shipping: `/science/hs-bio`, `/science/hs-chemistry`,
+  `/science/highschool-physics`. If these ever get added to or start
+  redirecting oddly, check the current URL on khanacademy.org/science before
+  reusing the old pattern.
+- **`services.html` cancellation policy drafted** — "at least 24 hours'
+  notice... life happens, we just ask for enough notice to offer that time
+  to another student." Deliberately soft-worded with no monetary penalty
+  mentioned, since a late-cancellation fee is a real business-policy call
+  that's Joshua's to make, not something to invent silently. Same treatment
+  as the original rate-setting: a reasonable default, flagged here for
+  Joshua to confirm or adjust, not presented to visitors as a draft.
+- **Custom `404.html`** — matches site styling, links to Tutors/Booking/Contact.
+  GitHub Pages serves this automatically for any unmatched path at the repo root.
+- **SEO basics** — `robots.txt` (disallows `/admin.html`, points to the
+  sitemap), `sitemap.xml` (all public pages, not `admin.html`), canonical
+  links, Open Graph + Twitter Card meta tags (title/description only, no
+  image yet — see README's "Site features checklist" for that gap), and
+  `EducationalOrganization` JSON-LD structured data on `index.html` only.
+  Deliberately did **not** add a `LocalBusiness` type or any `address`/
+  `areaServed` field — the public site has never disclosed a city or service
+  area (Irvine, CA was only ever an internal rate-setting reference in this
+  file), and publishing a location is a decision for Joshua, not something
+  to infer from internal notes.
+- **Favicon** — `images/favicon.svg`, a simple navy rounded-square with a
+  serif "F", linked from every page including `admin.html`.
+- **Contact mailto links** now prefill a subject line per tutor (e.g.
+  `?subject=Tutoring%20inquiry%20-%20Physics%20%26%20Science`) so the email
+  client opens with context already in the subject field.
+- **Considered and deliberately skipped:** initials-based avatars for the
+  tutor cards. Don't revisit this without re-deriving initials from real
+  names first — Joshua **Y**uan, Janissa **Y**uan, and James **Y**im all
+  produce "JY," so any first-letter/last-letter scheme collides for all
+  three people and would be actively confusing, not just decorative. A
+  subject-color or icon-based differentiator would work but wasn't built —
+  no code exists for this yet.
+- **`scripts/dev-server.js` + `.claude/launch.json`** added so the Browser
+  pane (or any future session) can preview the site over real HTTP.
+  Necessary because `js/tutors.js` and `js/admin.js` are `type="module"`
+  scripts, and browsers refuse to load ES modules from `file://` — opening
+  the HTML files directly fails silently (public pages just show fallback
+  content; `admin.html`'s login never becomes interactive). Zero
+  dependencies, just Node's built-in `http` module.
+- Full manual QA pass via the Browser pane against `scripts/dev-server.js`:
+  every page's nav/footer FAQ link, the FAQ accordion's open/close behavior,
+  mobile viewport (375px) including the hamburger menu, the custom 404 route,
+  and no new console errors anywhere. Confirmed all three new/changed
+  external resource links actually resolve to real, current content (not
+  just "doesn't 404").
+
+### Where to pick up
+
+Same as "Session 3 handoff" above — nothing here changed the Firebase
+picture. Additionally:
+
+1. Confirm the cancellation-policy wording in `services.html` matches what
+   Joshua actually wants to enforce (notice period, whether late
+   cancellations should ever be charged).
+2. Real booking URLs are still the biggest visible gap — `booking.html` and
+   each tutor's `admin.html` service entry still point at
+   `calendar.app.google/REPLACE-WITH-*`. Each tutor needs to create a Google
+   Calendar Appointment Schedule (README has the steps) and enter the real
+   link via `admin.html`.
+3. Consider a social preview image (`og:image`) once there's a logo or
+   branded graphic to use — see README's "Site features checklist."
+4. Analytics is provisioned (a GA4 `measurementId` has existed in
+   `js/firebase-config.js` since Session 3) but was deliberately left
+   unwired this session — enabling it means visitor data starts flowing to
+   Google Analytics, which felt like Joshua's call, not a default to enable
+   silently.
+
+## Session 5 handoff — resume here
+
+A copy-editing pass, prompted by Joshua flagging the tutors.html headline
+("Three tutors, three subjects") as cheesy. Looking closer, the real issue
+was one rhetorical trick — "X, not just Y" / "rather than Y" — reused in the
+hero headline and all three tutor bios, plus two generic "Ready to ___?"
+CTAs and a second rule-of-three headline echoing the flagged one. Rewrote
+all of it; no content/features changed, wording only.
+
+- Headlines: home hero h1, home's "What we cover" h2, `tutors.html` h1,
+  `services.html` h1.
+- CTAs: home and `services.html` closing bands (both were "Ready to ___?").
+- All three tutor bios in `tutors.html`, synced to the matching lede text in
+  `booking.html`, and the Physics blurb on the homepage subjects grid.
+- Deliberately left `Training the mind to think` (the header/footer tagline)
+  untouched — it has the same inspirational-poster quality, but it's the
+  brand tagline from the original project brief, not incidental page copy.
+  Flagged to Joshua; he can revisit it if he wants.
+
+### Important — Joshua's live bio hasn't caught up yet
+
+`tutors.js` renders `t.bio` straight from Firestore once a tutor has a
+document, overriding whatever's in the HTML. Joshua's document already
+exists (see Session 3), so his bio is **not** controlled by the HTML
+anymore — confirmed via the Browser pane against the real
+`firm-foundation-tutors` project that his live bio, tutor profile, and
+booking panel all still show the old "not just reproduce steps" phrasing.
+Janissa and James don't have documents yet, so the HTML fix is what's
+actually live for them.
+
+To fix Joshua's live copy, sign in at `/admin.html` and replace the Bio
+field with:
+
+> Focuses on building conceptual understanding first, so students can
+> explain their reasoning on a problem they haven't seen before.
+
+No MCP/CLI path to Firestore was available this session (`firebase-mcp`
+failed to connect — `CONNECT_TIMEOUT` both times it was checked) to do this
+automatically; if a future session has working Firestore access and Joshua
+asks for it, this is a single-field `updateDoc` on his own document, same
+as what `admin.js`'s save button already does.
+
 ## Placeholder checklist
 
 - [x] Janissa's credential and bio — filled in from her resume (Session 3), plus
@@ -489,6 +629,6 @@ there, then resume with the CLI.**
 - [x] Janissa's contact email — `janissa6646@gmail.com` (from her resume, Session 3)
 - [x] Joshua's contact email — `joshuaaa100@icloud.com`
 - [x] Payment method — Venmo, per-tutor link editable via `admin.html` (Session 3)
-- [ ] Cancellation policy (`services.html`)
-- [ ] Resource links and titles (`resources.html`)
+- [x] Cancellation policy (`services.html`) — drafted, Session 4 (see handoff above — confirm wording)
+- [x] Resource links and titles (`resources.html`) — curated external links, Session 4
 - [x] Joshua's LinkedIn link added to his `tutors.html` profile (Session 3)

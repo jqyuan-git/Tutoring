@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+
+Sitemap: https://jqyuan-git.github.io/Tutoring/sitemap.xml

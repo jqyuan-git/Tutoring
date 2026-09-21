@@ -1156,3 +1156,45 @@ table.rates td.rate { color: var(--navy); font-weight: 500; }
   background-color: #303030;
   opacity: 8%;
 }
+
+/* --------------------------------------------------------------------------
+   20. FAQ accordion
+   -------------------------------------------------------------------------- */
+.faq-list { border-top: 1px solid var(--rule); }
+
+.faq-item { border-bottom: 1px solid var(--rule); }
+
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--navy);
+  font-size: 1.05rem;
+  transition: color .15s ease;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::marker { content: ""; }
+.faq-item summary:hover { color: var(--blue-mid); }
+
+.faq-item summary::after {
+  content: "+";
+  flex: none;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--blue-mid);
+}
+.faq-item[open] summary::after { content: "\2212"; }
+
+.faq-item p {
+  color: var(--ink-soft);
+  max-width: 68ch;
+  padding-bottom: 22px;
+}

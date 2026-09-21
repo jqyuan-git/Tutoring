@@ -16,6 +16,10 @@ their own information without touching code.
   load time. If that fetch fails or no tutors exist yet, the pages fall back
   to the hardcoded content already in the HTML — the site never shows a
   blank or broken page.
+- `resources.html` and `faq.html` are static (no Firestore) — resources are a
+  short curated list of free external sites, and the FAQ is a plain `<details>`
+  accordion, no JS required.
+- `404.html` is served automatically by GitHub Pages for any unmatched URL.
 - `admin.html` lets a signed-in tutor view and edit only their own record.
   Sign-in is Google or email/password; Firestore security rules (not the
   page itself) are what actually enforce that a tutor can only touch their
@@ -111,6 +115,14 @@ Booking pages open in a new tab from `booking.html` — they are intentionally
 **not** embedded in an iframe, since many Google accounts block their
 scheduling pages from being framed.
 
+## Local preview
+
+`node scripts/dev-server.js` serves the repo at `http://localhost:5500`. Plain
+`file://` doesn't work for the pages that load `js/tutors.js` — browsers block
+ES module scripts from the `file:` protocol — so use this instead of just
+opening the HTML files directly. No dependencies; it's a zero-package script
+using only Node's built-in `http` module.
+
 ## Deploying
 
 - **Site:** push to `master`. GitHub Pages rebuilds automatically (usually
@@ -139,10 +151,33 @@ instead.
 - [x] All three tutors' contact emails filled in (`contact.html`)
 - [ ] Booking URLs for all three tutors (currently placeholder links)
 - [x] Payment method — Venmo, per-tutor link editable via `admin.html`
-- [ ] Cancellation policy (`services.html`)
-- [ ] Resource links and titles (`resources.html`)
+- [x] Cancellation policy (`services.html`) — drafted as a 24-hour-notice
+      policy; sanity-check the wording matches what you actually want
+- [x] Resource links and titles (`resources.html`) — curated free external
+      links (Khan Academy per subject, Paul's Online Math Notes, PhET
+      simulations), not the tutors' own materials. Swap in your own
+      worksheets later if you'd rather link those instead.
 - [ ] Janissa's and James's Firestore documents (waiting on each of them to
-      sign in once via `admin.html` so their UID exists)
+      sign in once via `admin.html` so their UID exists) — until then, every
+      Firestore-driven page (home, tutors, services, booking) only shows
+      Joshua, since he's the only tutor with a document
+
+## Site features checklist
+
+- [x] Core pages: home, tutors, services & rates, resources, booking,
+      contact, tutor admin
+- [x] FAQ page (`faq.html`) — accessible accordion, no JS
+- [x] Custom 404 page
+- [x] SEO basics: `robots.txt`, `sitemap.xml`, canonical URLs, Open Graph /
+      Twitter Card tags, `EducationalOrganization` structured data on the
+      homepage, and a favicon (`images/favicon.svg`)
+- [ ] A social preview image (`og:image`) — currently text-only; add one if
+      you want link previews (iMessage, Slack, etc.) to show a branded image
+- [ ] Analytics — a GA4 `measurementId` is already in `js/firebase-config.js`
+      from Firebase setup, but it was never wired up, so nothing is currently
+      tracked. Deliberately left off pending a decision on visitor tracking
+      and whether the site needs a privacy note as a result.
+- [ ] Tutor photos — `images/` is still empty
 
 See `HANDOFF.md` for full session-by-session build history and decisions —
 delete that file once the site is finished, it's scaffolding, not
