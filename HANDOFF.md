@@ -614,6 +614,26 @@ automatically; if a future session has working Firestore access and Joshua
 asks for it, this is a single-field `updateDoc` on his own document, same
 as what `admin.js`'s save button already does.
 
+## Session 6 handoff — UI refresh + shorter copy
+
+Restyled the whole site and cut copy. No data-model, Firebase, or rules changes.
+
+- **`css/style.css` rewritten.** Light sticky header with a logo tile, navy gradient
+  hero, rounded white cards with soft shadows, pill buttons, segmented-pill booking
+  tabs, card-style FAQ and resource rows. Inter only (Source Serif 4 dropped from
+  the font links). This supersedes the original "Blueprint" rules in the brief
+  (no gradients/shadows, blueprint grid, 3-4px corners). The brand palette is
+  unchanged, plus a `--link` blue (#1D6FBF) for text links on white because
+  `--blue-mid` was too low-contrast.
+- **Copy cut on every public page:** most eyebrows and intro paragraphs removed,
+  bios/credentials/FAQ answers shortened, `services.html` payment section folded into
+  a four-card row, `contact.html` "What to include" section and the CTA bands on
+  contact/resources removed, footer legal line reduced to the copyright.
+  James's credential no longer mentions his GPA or "pre-dental track".
+- **`js/tutors.js`:** dropped the redundant "Subject" row from rendered profile
+  spec lists (the subject already shows above the card). Class names are unchanged.
+- Live Firestore bios still override the HTML for Joshua (see Session 5).
+
 ## Placeholder checklist
 
 - [x] Janissa's credential and bio — filled in from her resume (Session 3), plus

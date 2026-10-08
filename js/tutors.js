@@ -179,7 +179,6 @@ function renderTutorProfiles(tutors) {
       if (multi) asideChildren.push(el("p", { class: "eyebrow", text: s.subject }));
       asideChildren.push(
         el("dl", { class: "spec-list" }, [
-          el("div", {}, [el("dt", { text: "Subject" }), el("dd", { text: s.subject })]),
           el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]),
           el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]),
         ])
