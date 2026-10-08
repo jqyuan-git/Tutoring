@@ -96,7 +96,33 @@ Auth UID**:
 - Public names are shown as "First L." (e.g. "Joshua Y.") everywhere except
   a tutor's own admin editor, which shows their full name.
 
-## Setting up Google Calendar booking links
+## Session requests and alerts
+
+`booking.html` is a request form (`js/request.js`). A submitted request is saved
+to the Firestore `requests` collection, and the Cloud Function in `functions/`
+emails and (optionally) texts the tutor. Tutors also see every request in a list
+at the top of `admin.html` and can mark it handled.
+
+- **Who can see what:** `firestore.rules` lets anyone *create* a request, but only
+  the tutor it's addressed to can *read* it. A tutor's alert email and phone live
+  in a separate private `tutorPrivate/{uid}` document that only that tutor can
+  read or write — never on the public `tutors` document.
+- **One-time setup** (needs the Firebase **Blaze** pay-as-you-go plan, since Cloud
+  Functions require it; light use typically costs cents or nothing):
+  1. Email: turn on 2-Step Verification on the Gmail account that will send the
+     alerts, then create an **App password** at myaccount.google.com/apppasswords.
+  2. Text (optional): create a Twilio account, buy a number, and complete Twilio's
+     US carrier registration (A2P 10DLC — can take days to weeks). Until then,
+     set the three Twilio secrets to the word `none` and alerts go by email only.
+  3. From the repo root: `firebase login`, then set the five secrets with
+     `firebase functions:secrets:set <NAME>` (`GMAIL_USER`, `GMAIL_APP_PASSWORD`,
+     `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`), then
+     `firebase deploy --only firestore:rules,functions`.
+  4. Each tutor signs in to `admin.html`, fills in **New request alerts**, and saves.
+- **Calendar links are now optional.** The "Or pick a time yourself" section on the
+  booking page only appears if at least one tutor has added a real link.
+
+## Setting up Google Calendar booking links (optional)
 
 Each tutor needs their own **Google Calendar Appointment Schedule** to get a
 bookable link for the `bookingUrl` field:
@@ -149,7 +175,8 @@ instead.
 - [x] Janissa's credential and bio (from her resume; also added Chemistry
       as a second subject alongside Biology)
 - [x] All three tutors' contact emails filled in (`contact.html`)
-- [ ] Booking URLs for all three tutors (currently placeholder links)
+- [ ] Deploy request alerts (see "Session requests and alerts") and have each tutor fill in
+      their alert email/phone — booking links are now optional
 - [x] Payment method — Venmo, per-tutor link editable via `admin.html`
 - [x] Cancellation policy (`services.html`) — drafted as a 24-hour-notice
       policy; sanity-check the wording matches what you actually want

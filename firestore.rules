@@ -13,6 +13,64 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
+    // Session requests from parents. Anyone may create one (the form is
+    // public), but only the tutor it is addressed to can read it or mark it
+    // handled. Nobody can edit its contents or delete it from the client.
+    match /requests/{requestId} {
+      allow create: if isValidRequest(request.resource.data);
+
+      allow get, list: if request.auth != null
+        && resource.data.tutorId == request.auth.uid;
+
+      allow update: if request.auth != null
+        && resource.data.tutorId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['new', 'handled'];
+
+      allow delete: if false;
+    }
+
+    // Private alert settings (where to email/text a tutor). Never public:
+    // only the tutor themselves can read or write their own document, and
+    // the Cloud Function reads it with admin credentials.
+    match /tutorPrivate/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && isValidPrivate(request.resource.data);
+      allow list, delete: if false;
+    }
+
+    function isValidRequest(d) {
+      return d.keys().hasOnly(['tutorId', 'tutorName', 'subject', 'format', 'grade',
+                               'parentName', 'email', 'phone', 'days', 'times',
+                               'message', 'status', 'createdAt'])
+        && d.keys().hasAll(['tutorId', 'tutorName', 'subject', 'format', 'grade',
+                            'parentName', 'email', 'phone', 'days', 'times',
+                            'message', 'status', 'createdAt'])
+        && d.tutorId is string
+        && exists(/databases/$(database)/documents/tutors/$(d.tutorId))
+        && d.tutorName is string && d.tutorName.size() <= 100
+        && d.subject is string && d.subject.size() > 0 && d.subject.size() <= 100
+        && d.format in ['In person', 'Video', 'No preference']
+        && d.grade is string && d.grade.size() > 0 && d.grade.size() <= 40
+        && d.parentName is string && d.parentName.size() > 0 && d.parentName.size() <= 100
+        && d.email is string && d.email.size() <= 200
+        && d.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+        && d.phone is string && d.phone.size() >= 7 && d.phone.size() <= 30
+        && d.days is list && d.days.size() <= 7
+        && d.times is list && d.times.size() <= 3
+        && d.message is string && d.message.size() <= 2000
+        && d.status == 'new'
+        && d.createdAt == request.time;
+    }
+
+    function isValidPrivate(d) {
+      return d.keys().hasOnly(['notifyEmail', 'notifyPhone'])
+        && d.notifyEmail is string && d.notifyEmail.size() <= 200
+        && d.notifyPhone is string && d.notifyPhone.size() <= 30;
+    }
+
     function isValidTutor(data) {
       return data.name is string
         && data.credential is string

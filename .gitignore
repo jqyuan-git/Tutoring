@@ -1,3 +1,4 @@
 firebase-debug.log
 .firebase/
 .gstack/
+node_modules/

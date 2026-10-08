@@ -18,7 +18,12 @@ import {
   getFirestore,
   doc,
   getDoc,
+  setDoc,
   updateDoc,
+  collection,
+  query,
+  where,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -44,6 +49,13 @@ const credentialField = document.getElementById("f-credential");
 const bioField = document.getElementById("f-bio");
 const linkedinField = document.getElementById("f-linkedin");
 const venmoField = document.getElementById("f-venmo");
+const notifyEmailField = document.getElementById("f-notify-email");
+const notifyPhoneField = document.getElementById("f-notify-phone");
+const requestsPanel = document.getElementById("requests-panel");
+const requestsList = document.getElementById("requests-list");
+const requestsEmpty = document.getElementById("requests-empty");
+const requestsError = document.getElementById("requests-error");
+const requestsCount = document.getElementById("requests-count");
 
 /* Google (and most identity providers) refuse to sign in reliably inside a
    third-party iframe — e.g. this page embedded in a Canvas course page — as
@@ -188,8 +200,8 @@ function buildServiceBlock(service) {
   urlInput.type = "url";
   urlInput.id = "service-" + n + "-url";
   urlInput.className = "js-url";
-  urlInput.value = service.bookingUrl || "";
-  const urlField = field("Booking link", urlInput, "Your Google Calendar appointment page. Paste the whole link.");
+  urlInput.value = /REPLACE-WITH/i.test(service.bookingUrl || "") ? "" : (service.bookingUrl || "");
+  const urlField = field("Calendar link (optional)", urlInput, "A Google Calendar appointment page, if you have one. Parents can request a session without it.");
   urlField.style.marginBottom = "0";
   fieldset.appendChild(urlField);
 
@@ -228,6 +240,135 @@ addServiceBtn.addEventListener("click", function () {
   renumberServiceBlocks();
 });
 
+/* ------------------------------------------------- alerts + requests -- */
+
+/* A US number typed any common way, or an international number starting
+   with "+". The Cloud Function normalizes again before texting. */
+function isPlausiblePhone(value) {
+  const digits = value.replace(/\D/g, "");
+  if (value.trim().charAt(0) === "+") return digits.length >= 8 && digits.length <= 15;
+  return digits.length === 10 || (digits.length === 11 && digits.charAt(0) === "1");
+}
+
+async function loadPrivateSettings(user) {
+  let data = null;
+  try {
+    const snap = await getDoc(doc(db, "tutorPrivate", user.uid));
+    data = snap.exists() ? snap.data() : null;
+  } catch (err) {
+    console.error(err);
+  }
+  // First time: suggest the email they signed in with.
+  notifyEmailField.value = (data && data.notifyEmail) || user.email || "";
+  notifyPhoneField.value = (data && data.notifyPhone) || "";
+}
+
+function requestCard(id, r) {
+  const card = document.createElement("article");
+  card.className = "request-card" + (r.status === "new" ? " is-new" : "");
+
+  const head = document.createElement("div");
+  head.className = "request-head";
+  const title = document.createElement("h3");
+  title.textContent = (r.parentName || "Parent") + " — " + (r.subject || "") + ", " + (r.grade || "");
+  head.appendChild(title);
+  if (r.status === "new") {
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = "New";
+    head.appendChild(badge);
+  }
+  card.appendChild(head);
+
+  const meta = document.createElement("p");
+  meta.className = "request-meta";
+  const when = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleString() : "";
+  meta.textContent = [when, r.format && r.format !== "No preference" ? (r.format === "Video" ? "Online" : r.format) : ""]
+    .filter(Boolean).join(" · ");
+  card.appendChild(meta);
+
+  const contact = document.createElement("p");
+  contact.className = "request-contact";
+  const mail = document.createElement("a");
+  mail.href = "mailto:" + encodeURIComponent(r.email || "");
+  mail.textContent = r.email || "";
+  contact.appendChild(mail);
+  contact.appendChild(document.createTextNode("  ·  "));
+  const tel = document.createElement("a");
+  tel.href = "tel:" + String(r.phone || "").replace(/[^0-9+]/g, "");
+  tel.textContent = r.phone || "";
+  contact.appendChild(tel);
+  card.appendChild(contact);
+
+  const avail = [].concat(r.days || [], r.times || []);
+  if (avail.length) {
+    const p = document.createElement("p");
+    p.textContent = "Works: " + (r.days && r.days.length ? r.days.join(", ") : "any day") +
+      (r.times && r.times.length ? " — " + r.times.join(", ").toLowerCase() : "");
+    card.appendChild(p);
+  }
+
+  if (r.message) {
+    const m = document.createElement("p");
+    m.className = "request-message";
+    m.textContent = r.message;
+    card.appendChild(m);
+  }
+
+  if (r.status === "new") {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-quiet";
+    btn.textContent = "Mark as handled";
+    btn.addEventListener("click", async function () {
+      btn.disabled = true;
+      try {
+        await updateDoc(doc(db, "requests", id), { status: "handled" });
+        loadRequests(currentUid);
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        requestsError.textContent = "Couldn't update that request. Please try again.";
+        requestsError.hidden = false;
+      }
+    });
+    card.appendChild(btn);
+  }
+
+  return card;
+}
+
+async function loadRequests(uid) {
+  if (!uid) return;
+  requestsError.hidden = true;
+  let docs;
+  try {
+    const snap = await getDocs(query(collection(db, "requests"), where("tutorId", "==", uid)));
+    docs = snap.docs.map(function (d) { return { id: d.id, data: d.data() }; });
+  } catch (err) {
+    console.error(err);
+    requestsError.textContent = "Couldn't load your requests. Try refreshing the page.";
+    requestsError.hidden = false;
+    requestsPanel.hidden = false;
+    return;
+  }
+
+  // Newest first; done client-side so no database index is needed.
+  docs.sort(function (a, b) {
+    const ta = a.data.createdAt && a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0;
+    const tb = b.data.createdAt && b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0;
+    return tb - ta;
+  });
+
+  const newCount = docs.filter(function (d) { return d.data.status === "new"; }).length;
+  requestsCount.hidden = newCount === 0;
+  requestsCount.textContent = newCount + " new";
+
+  requestsList.replaceChildren.apply(requestsList, docs.map(function (d) { return requestCard(d.id, d.data); }));
+  requestsEmpty.hidden = docs.length > 0;
+  requestsPanel.hidden = false;
+}
+
 /* --------------------------------------------------------------- views -- */
 
 function showLogin() {
@@ -239,6 +380,7 @@ function showLogin() {
 async function showEditor(user) {
   loginView.hidden = true;
   editorView.hidden = false;
+  requestsPanel.hidden = true;
   currentUserEl.textContent = user.email || user.displayName || "signed in";
   currentUid = user.uid;
   saveOk.hidden = true;
@@ -268,6 +410,8 @@ async function showEditor(user) {
   linkedinField.value = data.linkedin || "";
   venmoField.value = data.venmo || "";
   renderServices(data.services);
+  loadPrivateSettings(user);
+  loadRequests(user.uid);
 }
 
 if (isFramed) {
@@ -318,10 +462,21 @@ editorForm.addEventListener("submit", async function (e) {
 
   const services = collectServices();
   const invalid = services.some(function (s) {
-    return !s.subject || !s.bookingUrl || !Number.isFinite(s.rate) || s.rate < 0;
+    return !s.subject || !Number.isFinite(s.rate) || s.rate < 0 || (s.bookingUrl && !isHttpUrl(s.bookingUrl));
   });
   if (invalid) {
-    showSaveStatus(false, "Please fill in every field for each service with a valid rate.");
+    showSaveStatus(false, "Please give each service a subject and a valid rate. A calendar link is optional, but it must be a full link if you add one.");
+    return;
+  }
+
+  const notifyEmail = notifyEmailField.value.trim();
+  const notifyPhone = notifyPhoneField.value.trim();
+  if (notifyEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(notifyEmail)) {
+    showSaveStatus(false, "That alert email doesn't look valid.");
+    return;
+  }
+  if (notifyPhone && !isPlausiblePhone(notifyPhone)) {
+    showSaveStatus(false, "That mobile number doesn't look valid. Use a 10-digit US number, or leave it blank.");
     return;
   }
 
@@ -344,6 +499,10 @@ editorForm.addEventListener("submit", async function (e) {
       linkedin: linkedin,
       venmo: venmo,
       services: services,
+    });
+    await setDoc(doc(db, "tutorPrivate", currentUid), {
+      notifyEmail: notifyEmail,
+      notifyPhone: notifyPhone,
     });
     showSaveStatus(true, "Saved.");
   } catch (err) {

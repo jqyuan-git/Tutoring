@@ -244,10 +244,26 @@ function renderRatesTable(tutors) {
   root.replaceChildren.apply(root, rows);
 }
 
-function renderBooking(tutors) {
+/* Calendar links are optional now that the request form exists. A link only
+   counts if it is a real http(s) URL — the old "REPLACE-WITH-..." placeholders
+   don't — and the section stays hidden unless at least one tutor has one. */
+function hasRealBookingUrl(service) {
+  return !!service.bookingUrl && !/REPLACE-WITH/i.test(service.bookingUrl) && !!safeHttpUrl(service.bookingUrl);
+}
+
+function renderBooking(allTutors) {
   const tabsRoot = document.getElementById("booking-tabs");
   const panelsRoot = document.getElementById("booking-panels");
-  if (!tabsRoot || !panelsRoot || !tutors.length) return;
+  const section = document.getElementById("calendar-section");
+  if (!tabsRoot || !panelsRoot) return;
+
+  const tutors = allTutors
+    .map(function (t) {
+      return Object.assign({}, t, { services: (t.services || []).filter(hasRealBookingUrl) });
+    })
+    .filter(function (t) { return t.services.length; });
+  if (!tutors.length) return;
+  if (section) section.hidden = false;
 
   const tabs = tutors.map(function (t, i) {
     return el("button", {
@@ -275,7 +291,7 @@ function renderBooking(tutors) {
       specRows.push(el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]));
       specRows.push(el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]));
       bookLinks.push(
-        el("a", { class: "btn", attrs: { href: s.bookingUrl || "#", target: "_blank", rel: "noopener noreferrer" } }, [
+        el("a", { class: "btn", attrs: { href: safeHttpUrl(s.bookingUrl), target: "_blank", rel: "noopener noreferrer" } }, [
           document.createTextNode((multi ? s.subject + " — " : "") + "Open " + firstName(t.name) + "'s calendar"),
         ])
       );

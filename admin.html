@@ -95,6 +95,16 @@
         <button class="btn-quiet" type="button" id="logout-btn">Log out</button>
       </div>
 
+      <section class="requests-panel" id="requests-panel" hidden aria-labelledby="requests-heading">
+        <div class="requests-head">
+          <h2 id="requests-heading">Session requests</h2>
+          <span class="badge" id="requests-count" hidden></span>
+        </div>
+        <p class="status status-error" id="requests-error" hidden role="alert"></p>
+        <p class="requests-empty" id="requests-empty" hidden>No requests yet. New ones show up here and are sent to you by email or text.</p>
+        <div id="requests-list"></div>
+      </section>
+
       <p class="status status-ok" id="save-ok" hidden role="status"></p>
       <p class="status status-error" id="save-error" hidden role="alert"></p>
 
@@ -137,6 +147,25 @@
 
         <hr style="margin:30px 0 26px;">
 
+        <h3 style="margin-bottom:.35rem;">New request alerts</h3>
+        <p style="color:var(--ink-soft);font-size:.94rem;margin-bottom:20px;">
+          Only you can see these. They are never shown on the public site.
+        </p>
+
+        <div class="field">
+          <label for="f-notify-email">Email for alerts</label>
+          <input type="email" id="f-notify-email" autocomplete="email" maxlength="200">
+          <p class="hint">We email you here when a parent requests a session.</p>
+        </div>
+
+        <div class="field">
+          <label for="f-notify-phone">Mobile number for text alerts (optional)</label>
+          <input type="tel" id="f-notify-phone" autocomplete="tel" maxlength="30" placeholder="(949) 555-0123">
+          <p class="hint">Leave blank for email only. Standard message rates may apply.</p>
+        </div>
+
+        <hr style="margin:30px 0 26px;">
+
         <h3 style="margin-bottom:.35rem;">What you offer</h3>
         <p style="color:var(--ink-soft);font-size:.94rem;margin-bottom:20px;">
           Most tutors have one entry. Add another only if you offer something separate.
@@ -171,9 +200,9 @@
             </div>
 
             <div class="field" style="margin-bottom:0;">
-              <label for="s1-url">Booking link</label>
-              <input type="url" id="s1-url" value="https://calendar.app.google/REPLACE-WITH-JOSHUA-LINK">
-              <p class="hint">Your Google Calendar appointment page. Paste the whole link.</p>
+              <label for="s1-url">Calendar link (optional)</label>
+              <input type="url" id="s1-url">
+              <p class="hint">A Google Calendar appointment page, if you have one. Parents can request a session without it.</p>
             </div>
           </fieldset>
 

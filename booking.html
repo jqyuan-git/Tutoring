@@ -54,109 +54,130 @@
   <section class="page-head">
     <div class="container">
       <h1>Book a session</h1>
-      <p>Choose a tutor, then pick a time.</p>
+      <p>Tell us a little about your student. Your tutor will reply to confirm a time.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="container">
 
-      <div class="tablist" role="tablist" aria-label="Choose a tutor" id="booking-tabs">
-        <button class="tab" type="button" role="tab" id="tab-joshua"
-                aria-controls="panel-joshua" aria-selected="true">Joshua Y.</button>
-        <button class="tab" type="button" role="tab" id="tab-janissa"
-                aria-controls="panel-janissa" aria-selected="false" tabindex="-1">Janissa Y.</button>
-        <button class="tab" type="button" role="tab" id="tab-james"
-                aria-controls="panel-james" aria-selected="false" tabindex="-1">James Y.</button>
+      <form class="panel panel-wide" id="request-form" novalidate>
+        <p class="status status-error" id="req-error" hidden role="alert"></p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="r-tutor">Tutor</label>
+            <select id="r-tutor" name="tutor" required disabled>
+              <option value="">Loading&hellip;</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="r-subject">Subject</label>
+            <select id="r-subject" name="subject" required disabled>
+              <option value="">Choose a tutor first</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="r-grade">Student's grade</label>
+            <select id="r-grade" name="grade" required>
+              <option value="">Choose&hellip;</option>
+              <option>6th grade</option>
+              <option>7th grade</option>
+              <option>8th grade</option>
+              <option>9th grade</option>
+              <option>10th grade</option>
+              <option>11th grade</option>
+              <option>12th grade</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="r-format">Format</label>
+            <select id="r-format" name="format">
+              <option value="No preference">No preference</option>
+              <option value="In person">In person</option>
+              <option value="Video">Online</option>
+            </select>
+          </div>
+        </div>
+
+        <fieldset class="check-group">
+          <legend>Days that work</legend>
+          <div class="check-row" id="r-days">
+            <label class="check"><input type="checkbox" value="Mon"><span>Mon</span></label>
+            <label class="check"><input type="checkbox" value="Tue"><span>Tue</span></label>
+            <label class="check"><input type="checkbox" value="Wed"><span>Wed</span></label>
+            <label class="check"><input type="checkbox" value="Thu"><span>Thu</span></label>
+            <label class="check"><input type="checkbox" value="Fri"><span>Fri</span></label>
+            <label class="check"><input type="checkbox" value="Sat"><span>Sat</span></label>
+            <label class="check"><input type="checkbox" value="Sun"><span>Sun</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="check-group">
+          <legend>Times that work</legend>
+          <div class="check-row" id="r-times">
+            <label class="check"><input type="checkbox" value="Morning"><span>Morning</span></label>
+            <label class="check"><input type="checkbox" value="Afternoon"><span>Afternoon</span></label>
+            <label class="check"><input type="checkbox" value="Evening"><span>Evening</span></label>
+          </div>
+        </fieldset>
+
+        <hr class="form-rule">
+
+        <div class="field-row">
+          <div class="field">
+            <label for="r-name">Your name</label>
+            <input type="text" id="r-name" name="name" autocomplete="name" maxlength="100" required>
+          </div>
+          <div class="field">
+            <label for="r-phone">Phone</label>
+            <input type="tel" id="r-phone" name="phone" autocomplete="tel" maxlength="30" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="r-email">Email</label>
+          <input type="email" id="r-email" name="email" autocomplete="email" maxlength="200" required>
+        </div>
+
+        <div class="field">
+          <label for="r-message">Anything we should know? (optional)</label>
+          <textarea id="r-message" name="message" maxlength="2000" placeholder="The class, an upcoming test, where your student is stuck"></textarea>
+        </div>
+
+        <!-- Spam trap: real visitors never see or fill this in. -->
+        <div class="hp" aria-hidden="true">
+          <label for="r-website">Website</label>
+          <input type="text" id="r-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="form-actions">
+          <button class="btn" type="submit" id="r-submit" disabled>Send request</button>
+          <span class="hint-inline">Your tutor will contact you by email or text.</span>
+        </div>
+      </form>
+
+      <div class="panel panel-wide success-panel" id="request-success" hidden role="status" tabindex="-1">
+        <h2>Request sent</h2>
+        <p id="request-success-text">Your tutor will reach out soon to confirm a time.</p>
+        <p><a class="arrow-link" href="index.html">Back to home &rarr;</a></p>
       </div>
 
-      <div id="booking-panels">
-
-        <div class="tabpanel" role="tabpanel" id="panel-joshua" aria-labelledby="tab-joshua" tabindex="0">
-          <div class="booking-panel">
-            <div>
-              <h2>Joshua Y.</h2>
-              <p class="profile-subject">Physics &amp; Science</p>
-              <p class="lede">
-                Builds conceptual understanding first, so students can explain their
-                reasoning on problems they haven't seen before.
-              </p>
-            </div>
-            <aside>
-              <dl class="spec-list">
-                <div><dt>Rate</dt><dd class="rate">$60/hr</dd></div>
-                <div><dt>Format</dt><dd>In-Person/Online</dd></div>
-              </dl>
-              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JOSHUA-LINK"
-                 target="_blank" rel="noopener noreferrer">
-                Open Joshua's calendar
-              </a>
-              <p class="hint">
-                Opens in a new tab.
-              </p>
-            </aside>
-          </div>
-        </div>
-
-        <div class="tabpanel" role="tabpanel" id="panel-janissa" aria-labelledby="tab-janissa" tabindex="0" hidden>
-          <div class="booking-panel">
-            <div>
-              <h2>Janissa Y.</h2>
-              <p class="profile-subject">Biology, Chemistry</p>
-              <p class="lede">
-                Teaches genetics, cell processes, evolution, and physiology with diagrams
-                and worked examples.
-              </p>
-            </div>
-            <aside>
-              <dl class="spec-list">
-                <div><dt>Rate</dt><dd class="rate">$35/hr</dd></div>
-                <div><dt>Format</dt><dd>In-Person/Online</dd></div>
-              </dl>
-              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JANISSA-LINK"
-                 target="_blank" rel="noopener noreferrer">
-                Open Janissa's calendar
-              </a>
-              <p class="hint">
-                Opens in a new tab.
-              </p>
-            </aside>
-          </div>
-        </div>
-
-        <div class="tabpanel" role="tabpanel" id="panel-james" aria-labelledby="tab-james" tabindex="0" hidden>
-          <div class="booking-panel">
-            <div>
-              <h2>James Y.</h2>
-              <p class="profile-subject">Math &mdash; through AP Calculus</p>
-              <p class="lede">
-                Recently finished the math sequence he tutors, so he remembers where it
-                gets confusing.
-              </p>
-            </div>
-            <aside>
-              <dl class="spec-list">
-                <div><dt>Rate</dt><dd class="rate">$35/hr</dd></div>
-                <div><dt>Format</dt><dd>In-Person/Online</dd></div>
-              </dl>
-              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JAMES-LINK"
-                 target="_blank" rel="noopener noreferrer">
-                Open James's calendar
-              </a>
-              <p class="hint">
-                Opens in a new tab.
-              </p>
-            </aside>
-          </div>
-        </div>
-
-      </div>
     </div>
   </section>
 
-  <section class="section">
+  <!-- Shown only when at least one tutor has added a real calendar link. -->
+  <section class="section" id="calendar-section" hidden>
     <div class="container">
-      <p class="note">No time works? <a href="contact.html">Send us a note</a>.</p>
+      <div class="section-head">
+        <h2>Or pick a time yourself</h2>
+      </div>
+      <div class="tablist" role="tablist" aria-label="Choose a tutor" id="booking-tabs"></div>
+      <div id="booking-panels"></div>
     </div>
   </section>
 
@@ -189,5 +210,6 @@
 
 <script src="js/main.js"></script>
 <script type="module" src="js/tutors.js"></script>
+<script type="module" src="js/request.js"></script>
 </body>
 </html>

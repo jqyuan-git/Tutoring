@@ -634,6 +634,28 @@ Restyled the whole site and cut copy. No data-model, Firebase, or rules changes.
   spec lists (the subject already shows above the card). Class names are unchanged.
 - Live Firestore bios still override the HTML for Joshua (see Session 5).
 
+## Session 7 handoff — session request form + alerts
+
+Booking is now a request form instead of Google Calendar links (which were still
+placeholders). **Code is written and tested against a fake Firebase, but nothing is
+deployed yet** — see README "Session requests and alerts" for the one-time setup.
+
+- `booking.html` + `js/request.js`: form (tutor, subject, grade, format, days/times,
+  parent name/phone/email, message, honeypot). Writes to `requests`.
+- `firestore.rules`: public `create` on `requests` (validated, tutor must exist),
+  tutor-only read + `status` update; new private `tutorPrivate/{uid}` (alert
+  email/phone). **Rules deploy separately from GitHub Pages.**
+- `functions/index.js` (new): on a new request, emails the tutor via Gmail and texts
+  via Twilio (skipped if `TWILIO_ACCOUNT_SID` is `none`). Needs Blaze plan. Region is
+  `us-central1`; if deploy complains about a Firestore/region mismatch, that's the
+  first thing to change. Logic was mock-tested; real Gmail/Twilio sends are untested.
+- `admin.html`/`js/admin.js`: request inbox, alert email/phone fields, calendar link
+  now optional (the `REPLACE-WITH-*` placeholder is cleared on load).
+- `js/tutors.js`: the calendar picker section is hidden unless a tutor has a real
+  http(s) calendar link, which also fixes the unchecked `bookingUrl` href.
+- Open risks: no CAPTCHA/App Check yet (rules + honeypot only); no confirmation email
+  to the parent; text alerts need Twilio carrier registration.
+
 ## Placeholder checklist
 
 - [x] Janissa's credential and bio — filled in from her resume (Session 3), plus
