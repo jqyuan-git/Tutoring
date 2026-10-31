@@ -55,7 +55,7 @@
     <div class="container">
       <p class="eyebrow">Booking</p>
       <h1>Book a session</h1>
-      <p>Choose a tutor, then pick a time from their calendar. You'll get a confirmation by email.</p>
+      <p>Choose a tutor, then book a time on their calendar or get in touch to set one up. You'll get a confirmation by email.</p>
     </div>
   </section>
 
@@ -63,17 +63,17 @@
     <div class="container">
 
       <div class="tablist" role="tablist" aria-label="Choose a tutor" id="booking-tabs">
-        <button class="tab" type="button" role="tab" id="tab-joshua"
+        <button class="tab" type="button" role="tab" id="tab-joshua" data-tutor="joshua"
                 aria-controls="panel-joshua" aria-selected="true">Joshua Y.</button>
-        <button class="tab" type="button" role="tab" id="tab-janissa"
+        <button class="tab" type="button" role="tab" id="tab-janissa" data-tutor="janissa"
                 aria-controls="panel-janissa" aria-selected="false" tabindex="-1">Janissa Y.</button>
-        <button class="tab" type="button" role="tab" id="tab-james"
+        <button class="tab" type="button" role="tab" id="tab-james" data-tutor="james"
                 aria-controls="panel-james" aria-selected="false" tabindex="-1">James Y.</button>
       </div>
 
       <div id="booking-panels">
 
-        <div class="tabpanel" role="tabpanel" id="panel-joshua" aria-labelledby="tab-joshua" tabindex="0">
+        <div class="tabpanel" role="tabpanel" id="panel-joshua" data-tutor="joshua" aria-labelledby="tab-joshua" tabindex="0">
           <div class="booking-panel">
             <div>
               <h2>Joshua Y.</h2>
@@ -88,18 +88,17 @@
                 <div><dt>Rate</dt><dd class="rate">$60/hr</dd></div>
                 <div><dt>Format</dt><dd>In-Person/Online</dd></div>
               </dl>
-              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JOSHUA-LINK"
-                 target="_blank" rel="noopener noreferrer">
-                Open Joshua's calendar
-              </a>
-              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-top:12px;">
-                Opens in a new tab.
+              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-bottom:12px;">
+                Online booking isn't set up yet for Joshua.
               </p>
+              <a class="btn btn-outline" href="contact.html">
+                Get in touch to schedule
+              </a>
             </aside>
           </div>
         </div>
 
-        <div class="tabpanel" role="tabpanel" id="panel-janissa" aria-labelledby="tab-janissa" tabindex="0" hidden>
+        <div class="tabpanel" role="tabpanel" id="panel-janissa" data-tutor="janissa" aria-labelledby="tab-janissa" tabindex="0" hidden>
           <div class="booking-panel">
             <div>
               <h2>Janissa Y.</h2>
@@ -114,18 +113,17 @@
                 <div><dt>Rate</dt><dd class="rate">$35/hr</dd></div>
                 <div><dt>Format</dt><dd>In-Person/Online</dd></div>
               </dl>
-              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JANISSA-LINK"
-                 target="_blank" rel="noopener noreferrer">
-                Open Janissa's calendar
-              </a>
-              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-top:12px;">
-                Opens in a new tab.
+              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-bottom:12px;">
+                Online booking isn't set up yet for Janissa.
               </p>
+              <a class="btn btn-outline" href="contact.html">
+                Get in touch to schedule
+              </a>
             </aside>
           </div>
         </div>
 
-        <div class="tabpanel" role="tabpanel" id="panel-james" aria-labelledby="tab-james" tabindex="0" hidden>
+        <div class="tabpanel" role="tabpanel" id="panel-james" data-tutor="james" aria-labelledby="tab-james" tabindex="0" hidden>
           <div class="booking-panel">
             <div>
               <h2>James Y.</h2>
@@ -140,17 +138,42 @@
                 <div><dt>Rate</dt><dd class="rate">$35/hr</dd></div>
                 <div><dt>Format</dt><dd>In-Person/Online</dd></div>
               </dl>
-              <a class="btn" href="https://calendar.app.google/REPLACE-WITH-JAMES-LINK"
-                 target="_blank" rel="noopener noreferrer">
-                Open James's calendar
-              </a>
-              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-top:12px;">
-                Opens in a new tab.
+              <p class="hint" style="font-size:.84rem;color:var(--ink-soft);margin-bottom:12px;">
+                Online booking isn't set up yet for James.
               </p>
+              <a class="btn btn-outline" href="contact.html">
+                Get in touch to schedule
+              </a>
             </aside>
           </div>
         </div>
 
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Before your first session</p>
+        <h2>What to expect</h2>
+      </div>
+      <div class="grid grid-3">
+        <div class="cell">
+          <h3>Confirmation</h3>
+          <p>Once a time is set, you'll get a confirmation by email with your
+             tutor's contact info.</p>
+        </div>
+        <div class="cell">
+          <h3>Video sessions</h3>
+          <p>Your tutor sends a video link before the first meeting. Test your camera and
+             microphone a few minutes early.</p>
+        </div>
+        <div class="cell">
+          <h3>In-person sessions</h3>
+          <p>Location is arranged directly with your tutor. Bring whatever the student's
+             currently working on &mdash; a textbook, worksheet, or class notes.</p>
+        </div>
       </div>
     </div>
   </section>

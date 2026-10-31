@@ -39,6 +39,7 @@ const servicesList = document.getElementById("services-list");
 const addServiceBtn = document.getElementById("add-service");
 const saveOk = document.getElementById("save-ok");
 const saveError = document.getElementById("save-error");
+const viewProfileLink = document.getElementById("view-profile-link");
 const nameField = document.getElementById("f-name");
 const credentialField = document.getElementById("f-credential");
 const bioField = document.getElementById("f-bio");
@@ -107,6 +108,12 @@ function isHttpUrl(value) {
   } catch (err) {
     return false;
   }
+}
+
+/* Mirrors tutors.js's slugFor — used only to deep-link the "View your
+   profile" button to this tutor's own section of tutors.html. */
+function slugFor(name) {
+  return (name || "").trim().split(/\s+/)[0].toLowerCase();
 }
 
 /* ---------------------------------------------------------- services UI -- */
@@ -184,12 +191,24 @@ function buildServiceBlock(service) {
   row.appendChild(field("Format", formatSelect));
   fieldset.appendChild(row);
 
+  const rateFormatHint = document.createElement("p");
+  rateFormatHint.className = "hint";
+  rateFormatHint.style.margin = "-10px 0 18px";
+  rateFormatHint.textContent = "Rate and format both show on your profile, the rates table, and your booking page.";
+  fieldset.appendChild(rateFormatHint);
+
   const urlInput = document.createElement("input");
   urlInput.type = "url";
   urlInput.id = "service-" + n + "-url";
   urlInput.className = "js-url";
   urlInput.value = service.bookingUrl || "";
-  const urlField = field("Booking link", urlInput, "Your Google Calendar appointment page. Paste the whole link.");
+  const urlField = field(
+    "Booking link",
+    urlInput,
+    "Your Google Calendar appointment page. Paste the whole link. Leave it as-is until " +
+      "you have one — visitors will see a message asking them to reach out directly " +
+      "instead of a broken link."
+  );
   urlField.style.marginBottom = "0";
   fieldset.appendChild(urlField);
 
@@ -263,6 +282,7 @@ async function showEditor(user) {
 
   editorForm.hidden = false;
   nameField.value = data.name || "";
+  viewProfileLink.href = "tutors.html#" + slugFor(data.name);
   credentialField.value = data.credential || "";
   bioField.value = data.bio || "";
   linkedinField.value = data.linkedin || "";

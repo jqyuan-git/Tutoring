@@ -1,9 +1,14 @@
 /* ==========================================================================
    Firm Foundation — public tutor data
-   Fetches the `tutors` collection from Firestore and re-renders whichever of
-   the known DOM hooks are present on the current page. If the fetch fails,
-   or Firestore has no active tutors yet, this does nothing — the hardcoded
-   markup already in each page is the fallback, and stays exactly as-is.
+   Fetches the `tutors` collection from Firestore and merges it into whichever
+   of the known DOM hooks are present on the current page. A tutor's hardcoded
+   fallback markup is only replaced for tutors Firestore actually returns —
+   any tutor missing from Firestore entirely keeps their hardcoded fallback
+   untouched, so one tutor having a document never hides another who simply
+   doesn't have one yet. A tutor present in Firestore but marked
+   `active: false` is removed instead (that's an explicit "hide me," not a
+   "no data yet"). If the fetch fails outright or the collection is empty,
+   this does nothing and every page's hardcoded markup stands as-is.
    ========================================================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
@@ -64,6 +69,13 @@ function safeHttpUrl(value) {
   }
 }
 
+/* A booking link nobody's replaced yet is still the literal placeholder
+   string from the original scaffold (or blank) — never a real calendar URL.
+   Shown as a friendly "reach out directly" message instead of a dead link. */
+function isPlaceholderBookingUrl(url) {
+  return !url || /REPLACE-WITH/i.test(url);
+}
+
 /* Built via createElementNS, not innerHTML — these are fixed
    developer-authored icons, but keeping them out of innerHTML entirely
    means there's never a temptation to interpolate anything into one. */
@@ -114,45 +126,68 @@ function el(tag, opts, children) {
 async function fetchTutors() {
   const q = query(collection(db, "tutors"), orderBy("order"));
   const snap = await getDocs(q);
-  return snap.docs
-    .map(function (doc) {
-      const data = doc.data();
-      return Object.assign({ id: doc.id, slug: slugFor(data.name) }, data);
-    })
-    .filter(function (t) {
-      return t.active !== false;
-    });
+  return snap.docs.map(function (doc) {
+    const data = doc.data();
+    return Object.assign({ id: doc.id, slug: slugFor(data.name) }, data);
+  });
+}
+
+/* ------------------------------------------------------------- merging -- */
+
+/* Every hardcoded per-tutor element on a public page carries data-tutor="
+   <slug>". Given the slugs Firestore actually returned a document for
+   (`knownSlugs`, active or not), this splits an existing NodeList into
+   elements to keep untouched (tutors absent from Firestore) versus discard
+   (tutors present — either about to be replaced with fresh live markup, or,
+   if inactive, just removed). */
+function partitionExisting(nodeList, knownSlugs) {
+  return Array.from(nodeList).filter(function (node) {
+    return knownSlugs.indexOf(node.getAttribute("data-tutor")) === -1;
+  });
 }
 
 /* ------------------------------------------------------------ renderers -- */
 
-function renderSubjectsGrid(tutors) {
+/* Unlike the other renderers, this one keeps an active tutor's hardcoded cell
+   even when Firestore has their document: the cell's subject blurb is
+   site copy, not a tutor-editable field, and there's nothing in Firestore to
+   rebuild it from (the bio reads wrong here). One cell per tutor, not per
+   service, so the 3-column grid stays full. Only tutors with no hardcoded
+   cell at all get a generated one; inactive tutors' cells are removed. */
+function renderSubjectsGrid(tutors, knownSlugs) {
   const root = document.getElementById("subjects-grid");
   if (!root) return;
 
-  const cells = [];
-  tutors.forEach(function (t) {
-    (t.services || []).forEach(function (s) {
-      cells.push(
-        el("div", { class: "cell" }, [
-          el("p", { class: "eyebrow", text: "With " + displayName(t.name) }),
-          el("h3", { text: s.subject }),
-          el("p", { text: t.bio || "" }),
-        ])
-      );
-    });
+  const activeSlugs = tutors.map(function (t) { return t.slug; });
+  const existing = Array.from(root.querySelectorAll("[data-tutor]"));
+  const keep = existing.filter(function (node) {
+    const slug = node.getAttribute("data-tutor");
+    return knownSlugs.indexOf(slug) === -1 || activeSlugs.indexOf(slug) !== -1;
   });
-  if (!cells.length) return;
-  root.replaceChildren.apply(root, cells);
+  const keptSlugs = keep.map(function (node) { return node.getAttribute("data-tutor"); });
+
+  const fresh = tutors
+    .filter(function (t) { return keptSlugs.indexOf(t.slug) === -1 && (t.services || []).length; })
+    .map(function (t) {
+      const subjects = t.services.map(function (s) { return s.subject; });
+      const more = subjects.slice(1);
+      return el("div", { class: "cell", attrs: { "data-tutor": t.slug } }, [
+        el("p", { class: "eyebrow", text: "With " + displayName(t.name) }),
+        el("h3", { text: subjects[0] }),
+        el("p", { text: (t.credential || "") + (more.length ? " Also available for " + more.join(", ") + "." : "") }),
+      ]);
+    });
+  root.replaceChildren.apply(root, keep.concat(fresh));
 }
 
-function renderTutorPreview(tutors) {
+function renderTutorPreview(tutors, knownSlugs) {
   const root = document.getElementById("tutor-preview");
   if (!root) return;
 
-  const cards = tutors.map(function (t) {
+  const keep = partitionExisting(root.querySelectorAll("[data-tutor]"), knownSlugs);
+  const fresh = tutors.map(function (t) {
     const subjects = (t.services || []).map(function (s) { return s.subject; }).join(", ");
-    return el("article", { class: "tutor-card" }, [
+    return el("article", { class: "tutor-card", attrs: { "data-tutor": t.slug } }, [
       el("h3", { text: displayName(t.name) }),
       el("p", { class: "card-subject", text: subjects }),
       el("p", { class: "card-credential", text: t.credential || "" }),
@@ -161,78 +196,80 @@ function renderTutorPreview(tutors) {
       ]),
     ]);
   });
-  if (!cards.length) return;
-  root.replaceChildren.apply(root, cards);
+  root.replaceChildren.apply(root, keep.concat(fresh));
 }
 
-function renderTutorProfiles(tutors) {
+function buildProfileArticle(t) {
+  const services = t.services || [];
+  const subjects = services.map(function (s) { return s.subject; }).join(", ");
+  const multi = services.length > 1;
+
+  const asideChildren = [];
+  services.forEach(function (s) {
+    if (multi) asideChildren.push(el("p", { class: "eyebrow", text: s.subject }));
+    asideChildren.push(
+      el("dl", { class: "spec-list" }, [
+        el("div", {}, [el("dt", { text: "Subject" }), el("dd", { text: s.subject })]),
+        el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]),
+        el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]),
+      ])
+    );
+  });
+  asideChildren.push(
+    el("a", { class: "btn", attrs: { href: "booking.html#" + t.slug } }, [
+      document.createTextNode("Book with " + firstName(t.name)),
+    ])
+  );
+
+  const linkedinUrl = t.linkedin ? safeHttpUrl(t.linkedin) : null;
+  const venmoUrl = t.venmo ? safeHttpUrl(t.venmo) : null;
+  const profileMainChildren = [
+    el("h2", { text: displayName(t.name) }),
+    el("p", { class: "profile-subject", text: subjects }),
+    el("p", { class: "profile-credential", text: t.credential || "" }),
+    el("p", { class: "profile-bio", text: t.bio || "" }),
+  ];
+  if (linkedinUrl) {
+    profileMainChildren.push(
+      el("a", { class: "arrow-link icon-link", attrs: { href: linkedinUrl, target: "_blank", rel: "noopener noreferrer" } }, [
+        linkedinIcon(),
+        document.createTextNode("LinkedIn"),
+      ])
+    );
+  }
+  if (venmoUrl) {
+    profileMainChildren.push(
+      el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Venmo" } }, [
+        venmoIcon(),
+      ])
+    );
+  }
+
+  return el("article", { class: "profile", attrs: { id: t.slug, "data-tutor": t.slug } }, [
+    el("div", { class: "profile-main" }, profileMainChildren),
+    el("aside", { class: "profile-aside" }, asideChildren),
+  ]);
+}
+
+function renderTutorProfiles(tutors, knownSlugs) {
   const root = document.getElementById("tutor-profiles");
   if (!root) return;
 
-  const articles = tutors.map(function (t) {
-    const services = t.services || [];
-    const subjects = services.map(function (s) { return s.subject; }).join(", ");
-    const multi = services.length > 1;
-
-    const asideChildren = [];
-    services.forEach(function (s) {
-      if (multi) asideChildren.push(el("p", { class: "eyebrow", text: s.subject }));
-      asideChildren.push(
-        el("dl", { class: "spec-list" }, [
-          el("div", {}, [el("dt", { text: "Subject" }), el("dd", { text: s.subject })]),
-          el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]),
-          el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]),
-        ])
-      );
-    });
-    asideChildren.push(
-      el("a", { class: "btn", attrs: { href: "booking.html#" + t.slug } }, [
-        document.createTextNode("Book with " + firstName(t.name)),
-      ])
-    );
-
-    const linkedinUrl = t.linkedin ? safeHttpUrl(t.linkedin) : null;
-    const venmoUrl = t.venmo ? safeHttpUrl(t.venmo) : null;
-    const profileMainChildren = [
-      el("h2", { text: displayName(t.name) }),
-      el("p", { class: "profile-subject", text: subjects }),
-      el("p", { class: "profile-credential", text: t.credential || "" }),
-      el("p", { class: "profile-bio", text: t.bio || "" }),
-    ];
-    if (linkedinUrl) {
-      profileMainChildren.push(
-        el("a", { class: "arrow-link icon-link", attrs: { href: linkedinUrl, target: "_blank", rel: "noopener noreferrer" } }, [
-          linkedinIcon(),
-          document.createTextNode("LinkedIn"),
-        ])
-      );
-    }
-    if (venmoUrl) {
-      profileMainChildren.push(
-        el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Venmo" } }, [
-          venmoIcon(),
-        ])
-      );
-    }
-
-    return el("article", { class: "profile", attrs: { id: t.slug } }, [
-      el("div", { class: "profile-main" }, profileMainChildren),
-      el("aside", { class: "profile-aside" }, asideChildren),
-    ]);
-  });
-  if (!articles.length) return;
-  root.replaceChildren.apply(root, articles);
+  const keep = partitionExisting(root.querySelectorAll("[data-tutor]"), knownSlugs);
+  const fresh = tutors.map(buildProfileArticle);
+  root.replaceChildren.apply(root, keep.concat(fresh));
 }
 
-function renderRatesTable(tutors) {
+function renderRatesTable(tutors, knownSlugs) {
   const root = document.getElementById("rates-body");
   if (!root) return;
 
-  const rows = [];
+  const keep = partitionExisting(root.querySelectorAll("[data-tutor]"), knownSlugs);
+  const fresh = [];
   tutors.forEach(function (t) {
     (t.services || []).forEach(function (s) {
-      rows.push(
-        el("tr", {}, [
+      fresh.push(
+        el("tr", { attrs: { "data-tutor": t.slug } }, [
           el("th", { attrs: { scope: "row" }, text: s.subject }),
           el("td", { text: displayName(t.name) }),
           el("td", { class: "rate", text: formatRate(s.rate) }),
@@ -241,97 +278,137 @@ function renderRatesTable(tutors) {
       );
     });
   });
-  if (!rows.length) return;
-  root.replaceChildren.apply(root, rows);
+  root.replaceChildren.apply(root, keep.concat(fresh));
 }
 
-function renderBooking(tutors) {
-  const tabsRoot = document.getElementById("booking-tabs");
-  const panelsRoot = document.getElementById("booking-panels");
-  if (!tabsRoot || !panelsRoot || !tutors.length) return;
-
-  const tabs = tutors.map(function (t, i) {
-    return el("button", {
-      class: "tab",
-      attrs: {
-        type: "button",
-        role: "tab",
-        id: "tab-" + t.slug,
-        "aria-controls": "panel-" + t.slug,
-        "aria-selected": i === 0 ? "true" : "false",
-        tabindex: i === 0 ? "0" : "-1",
-      },
-      text: displayName(t.name),
-    });
+function buildBookingTab(t) {
+  return el("button", {
+    class: "tab",
+    attrs: {
+      type: "button",
+      role: "tab",
+      id: "tab-" + t.slug,
+      "data-tutor": t.slug,
+      "aria-controls": "panel-" + t.slug,
+      "aria-selected": "false",
+      tabindex: "-1",
+    },
+    text: displayName(t.name),
   });
+}
 
-  const panels = tutors.map(function (t, i) {
-    const services = t.services || [];
-    const subjects = services.map(function (s) { return s.subject; }).join(", ");
-    const multi = services.length > 1;
+function buildBookingPanel(t) {
+  const services = t.services || [];
+  const subjects = services.map(function (s) { return s.subject; }).join(", ");
+  const multi = services.length > 1;
 
-    const specRows = [];
-    const bookLinks = [];
-    services.forEach(function (s) {
-      specRows.push(el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]));
-      specRows.push(el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]));
+  const specRows = [];
+  const bookLinks = [];
+  let hasRealBooking = false;
+  services.forEach(function (s) {
+    specRows.push(el("div", {}, [el("dt", { text: "Rate" }), el("dd", { class: "rate", text: formatRate(s.rate) })]));
+    specRows.push(el("div", {}, [el("dt", { text: "Format" }), el("dd", { text: formatLabel(s.format) })]));
+    if (isPlaceholderBookingUrl(s.bookingUrl)) {
       bookLinks.push(
-        el("a", { class: "btn", attrs: { href: s.bookingUrl || "#", target: "_blank", rel: "noopener noreferrer" } }, [
+        el("p", { class: "hint", attrs: { style: "font-size:.84rem;color:var(--ink-soft);margin-bottom:12px;" } }, [
+          document.createTextNode((multi ? s.subject + ": " : "") + "Online booking isn't set up yet."),
+        ])
+      );
+    } else {
+      hasRealBooking = true;
+      bookLinks.push(
+        el("a", { class: "btn", attrs: { href: s.bookingUrl, target: "_blank", rel: "noopener noreferrer" } }, [
           document.createTextNode((multi ? s.subject + " — " : "") + "Open " + firstName(t.name) + "'s calendar"),
         ])
       );
-    });
-
-    const venmoUrl = t.venmo ? safeHttpUrl(t.venmo) : null;
-    const asideChildren = [el("dl", { class: "spec-list" }, specRows)].concat(bookLinks);
-    if (venmoUrl) {
-      asideChildren.push(
-        el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Venmo", style: "display:flex;margin-top:12px;" } }, [
-          venmoIcon(),
-        ])
-      );
     }
-    asideChildren.push(el("p", { class: "hint", text: "Opens in a new tab." }));
-
-    const panel = el(
-      "div",
-      { class: "tabpanel", attrs: { role: "tabpanel", id: "panel-" + t.slug, "aria-labelledby": "tab-" + t.slug, tabindex: "0" } },
-      [
-        el("div", { class: "booking-panel" }, [
-          el("div", {}, [
-            el("h2", { text: displayName(t.name) }),
-            el("p", { class: "profile-subject", text: subjects }),
-            el("p", { class: "lede", text: t.bio || "" }),
-          ]),
-          el("aside", {}, asideChildren),
-        ]),
-      ]
-    );
-    panel.hidden = i !== 0;
-    return panel;
   });
+  bookLinks.push(
+    el("a", { class: "btn btn-outline", attrs: { href: "contact.html" } }, [
+      document.createTextNode("Get in touch to schedule"),
+    ])
+  );
 
-  tabsRoot.replaceChildren.apply(tabsRoot, tabs);
-  panelsRoot.replaceChildren.apply(panelsRoot, panels);
+  const venmoUrl = t.venmo ? safeHttpUrl(t.venmo) : null;
+  const asideChildren = [el("dl", { class: "spec-list" }, specRows)].concat(bookLinks);
+  if (venmoUrl) {
+    asideChildren.push(
+      el("a", { class: "arrow-link icon-link", attrs: { href: venmoUrl, target: "_blank", rel: "noopener noreferrer", "aria-label": "Venmo", style: "display:flex;margin-top:12px;" } }, [
+        venmoIcon(),
+      ])
+    );
+  }
+  if (hasRealBooking) {
+    asideChildren.push(el("p", { class: "hint", text: "Opens in a new tab." }));
+  }
+
+  const panel = el(
+    "div",
+    { class: "tabpanel", attrs: { role: "tabpanel", id: "panel-" + t.slug, "data-tutor": t.slug, "aria-labelledby": "tab-" + t.slug, tabindex: "0" } },
+    [
+      el("div", { class: "booking-panel" }, [
+        el("div", {}, [
+          el("h2", { text: displayName(t.name) }),
+          el("p", { class: "profile-subject", text: subjects }),
+          el("p", { class: "lede", text: t.bio || "" }),
+        ]),
+        el("aside", {}, asideChildren),
+      ]),
+    ]
+  );
+  panel.hidden = true;
+  return panel;
+}
+
+function renderBooking(tutors, knownSlugs) {
+  const tabsRoot = document.getElementById("booking-tabs");
+  const panelsRoot = document.getElementById("booking-panels");
+  if (!tabsRoot || !panelsRoot) return;
+
+  const keepTabs = partitionExisting(tabsRoot.querySelectorAll("[data-tutor]"), knownSlugs);
+  const keepPanels = partitionExisting(panelsRoot.querySelectorAll("[data-tutor]"), knownSlugs);
+  const allTabs = keepTabs.concat(tutors.map(buildBookingTab));
+  const allPanels = keepPanels.concat(tutors.map(buildBookingPanel));
+  if (!allTabs.length) return;
+
+  tabsRoot.replaceChildren.apply(tabsRoot, allTabs);
+  panelsRoot.replaceChildren.apply(panelsRoot, allPanels);
+
+  /* Exactly one tab must end up selected. Reuse whichever kept hardcoded
+     tab was already selected, if any survived; otherwise default to the
+     first tab in the merged list. */
+  let selected = allTabs.filter(function (t) { return t.getAttribute("aria-selected") === "true"; })[0];
+  if (!selected) selected = allTabs[0];
+  allTabs.forEach(function (t) {
+    const isSelected = t === selected;
+    t.setAttribute("aria-selected", String(isSelected));
+    t.tabIndex = isSelected ? 0 : -1;
+  });
+  allPanels.forEach(function (p) {
+    p.hidden = p.getAttribute("data-tutor") !== selected.getAttribute("data-tutor");
+  });
 }
 
 /* ------------------------------------------------------------------ init -- */
 
 (async function init() {
-  let tutors;
+  let allTutors;
   try {
-    tutors = await fetchTutors();
+    allTutors = await fetchTutors();
   } catch (err) {
     console.error("Firm Foundation: could not load tutor data, showing fallback content.", err);
     return;
   }
-  if (!tutors.length) return;
+  if (!allTutors.length) return;
 
-  renderSubjectsGrid(tutors);
-  renderTutorPreview(tutors);
-  renderTutorProfiles(tutors);
-  renderRatesTable(tutors);
-  renderBooking(tutors);
+  const knownSlugs = allTutors.map(function (t) { return t.slug; });
+  const activeTutors = allTutors.filter(function (t) { return t.active !== false; });
+
+  renderSubjectsGrid(activeTutors, knownSlugs);
+  renderTutorPreview(activeTutors, knownSlugs);
+  renderTutorProfiles(activeTutors, knownSlugs);
+  renderRatesTable(activeTutors, knownSlugs);
+  renderBooking(activeTutors, knownSlugs);
 
   if (window.FF && typeof window.FF.initTabs === "function") {
     window.FF.initTabs("#booking-tabs");

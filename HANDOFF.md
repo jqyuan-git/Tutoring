@@ -5,7 +5,7 @@ Working notes for continuing this build in a local Claude Code session.
 
 ---
 
-## Current state (updated in Session 5 — see "Session 5 handoff" below)
+## Current state (updated in Session 6 — see "Session 6 handoff" below)
 
 **Build step 1 of 5 is complete and live.** All seven pages are scaffolded with
 hardcoded data and full styling, pushed to GitHub, and served via GitHub Pages.
@@ -613,6 +613,159 @@ failed to connect — `CONNECT_TIMEOUT` both times it was checked) to do this
 automatically; if a future session has working Firestore access and Joshua
 asks for it, this is a single-field `updateDoc` on his own document, same
 as what `admin.js`'s save button already does.
+
+## Session 6 handoff — resume here
+
+Four features, chosen by Joshua from a ranked list of options after this
+session confirmed (via a public, unauthenticated read of the live Firestore
+REST API — no credentials needed, `allow read: if true`) that nothing about
+the Session 3–5 state had changed: only Joshua has a Firestore document,
+his `bio` still has the pre-Session-5 wording, and all `bookingUrl` values
+(including his, in Firestore) are still literal `REPLACE-WITH-*` placeholders.
+
+**Not committed or pushed** — Joshua asked for that explicitly this session.
+
+### 1. Fixed the dead booking links
+
+Any `bookingUrl` matching `REPLACE-WITH` (or empty) is now treated as "not
+set up yet" rather than rendered as a clickable dead link. Both the
+hardcoded `booking.html` panels and `js/tutors.js`'s `buildBookingPanel`
+show a "Online booking isn't set up yet for `<name>`" note plus a
+"Get in touch to schedule" button (→ `contact.html`) instead. New helper:
+`isPlaceholderBookingUrl()` in `tutors.js`. This was a real, live bug —
+right now, on the actual deployed site, all three tutors' calendar buttons
+go to `calendar.app.google/REPLACE-WITH-*-LINK`, a dead URL.
+
+### 2. Fixed Janissa and James being invisible on every dynamic page
+
+The bigger fix. Previously, `tutors.js` did a full `replaceChildren` wipe on
+every dynamic section the moment Firestore returned *any* data — so once
+Joshua got a document, his data fully replaced the hardcoded fallback,
+silently hiding Janissa and James (who still don't have documents) from the
+homepage, the rates table, and the booking tabs, even though their real
+hardcoded profiles were sitting right there unused.
+
+Fixed by tagging every hardcoded per-tutor element with `data-tutor="<slug>"`
+(added to `index.html`'s subjects-grid cells and tutor-preview cards,
+`services.html`'s rate rows, and `booking.html`'s tabs/panels;
+`tutors.html`'s profile `<article>`s already had a matching `id` and just
+got `data-tutor` added alongside it) and rewriting all five render functions
+in `js/tutors.js` around a `partitionExisting()` helper: elements tagged
+with a slug **not** present in Firestore are left completely untouched;
+elements tagged with a slug that **is** present are discarded and replaced
+with freshly built ones. `fetchTutors()` no longer filters by `active`
+itself — `init()` now computes `knownSlugs` (every slug Firestore returned a
+document for, active or not) and `activeTutors` (the subset to actually
+render) separately, so a tutor who's merely *missing* a document keeps
+their fallback, while a tutor who's *present but `active: false`* is
+correctly removed rather than falling back.
+
+`renderBooking()` needed extra care beyond the other four: tabs/panels carry
+interactive state (`aria-selected` / `hidden`) that a naive merge could
+leave invalid (e.g. zero selected tabs, if the previously-selected hardcoded
+tab was one of the ones discarded). It builds the merged list first, then
+normalizes selection in one pass — reuses whichever surviving tab was
+already selected, or defaults to the first tab in the merged list. Verified
+this actually happens correctly (Janissa's tab, first among the two
+survivors) since Joshua's tab was the one discarded and rebuilt.
+
+**Known limitation, accepted as a reasonable tradeoff:** during this
+transitional mixed state, tab/card order isn't guaranteed to match the
+`order` field — replaced tutors get appended after the surviving hardcoded
+ones rather than re-sorted in. Confirmed on the real data (Joshua the only
+one in Firestore) that this produces a merely-not-perfectly-ordered but
+fully correct and complete result (Janissa, James, Joshua) rather than any
+missing or duplicated tutor. Once all three have documents, `orderBy("order")`
+in the Firestore query takes over entirely and this stops applying.
+
+### 3. Admin.html field guidance
+
+Non-technical tutors (Janissa and James still haven't signed in even once)
+now get told which public pages each field affects, right in the form:
+the intro paragraph, the Bio hint, and a new hint under the Rate/Format row
+in `js/admin.js`'s `buildServiceBlock()` (that block is fully rebuilt by JS
+on every load, so a hint added only to the static `admin.html` shell would
+never actually be seen — had to go in `admin.js`). The Booking-link hint
+also now explains the new placeholder-link fallback from item 1, so a tutor
+who hasn't set one up yet knows visitors will see a friendly message rather
+than worrying they've left something broken. The existing "View your
+profile" link now deep-links to `tutors.html#<their-slug>` instead of the
+top of the page (new `slugFor()` helper in `admin.js`, mirroring the one in
+`tutors.js` — not shared, these two files don't share modules currently).
+
+### 4. "Before your first session" section on booking.html
+
+A static three-cell block (confirmation email, video-session setup,
+in-person logistics) placed after the tabs, before the existing "Trouble
+booking?" note. Every claim in it already existed elsewhere on the site
+(services.html's format section, the FAQ) — this doesn't introduce any new
+policy, just resurfaces already-established facts at the moment they're
+most useful.
+
+### Verification performed
+
+Local dev server (`scripts/dev-server.js`) against the real
+`firm-foundation-tutors` Firestore project (the only one that exists —
+no way to test against a mock). Confirmed, with no console errors on any
+page: homepage shows all three tutors (James/Janissa hardcoded, Joshua
+live); `tutors.html` shows all three full profiles; `services.html`'s rates
+table shows all five rows (previously only Joshua's two); `booking.html`'s
+tabs all switch correctly via click, each panel shows the right tutor's
+"booking isn't set up yet" state, and the merged tab list defaults to a
+validly-selected tab; mobile width (375px) renders correctly including the
+hamburger menu; no broken resource requests (checked the full network log,
+all 200s). **Not empirically re-tested:** the total-Firestore-failure and
+empty-collection fallback paths — the code for both is byte-for-byte
+unchanged in effect from the already-verified Session 3 implementation
+(same try/catch, same `if (!list.length) return`), so this was confirmed by
+inspection rather than by re-running a live test.
+
+### Where to pick up
+
+Everything in "Session 5 handoff" above is still open (Joshua's live bio
+still needs a manual sync via `/admin.html`, real booking URLs are still
+needed from each tutor, Janissa and James still need to sign in once).
+Nothing done this session changes any of that — it makes the *symptoms* of
+those gaps much less visible to real visitors, not the gaps themselves.
+
+## Session 7 handoff — resume here
+
+Audit of the local and live sites (Playwright at 1280/768/375px, read-only
+Firestore check, Impeccable detector), then four fixes on top of the still
+uncommitted Session 6 work. **Not committed or pushed yet** — waiting on
+Joshua's go-ahead. Firestore state unchanged: still only Joshua's document,
+old bio, placeholder booking URLs.
+
+Confirmed on the **live** site (which is still the pre-Session-6 commit):
+only Joshua appears on the homepage, rates table, and booking tabs, and every
+booking button is a dead `REPLACE-WITH` link. Session 6 + 7 fix all of that
+once pushed.
+
+1. **Homepage subjects grid** (`renderSubjectsGrid` in `js/tutors.js`) put
+   each Firestore tutor's *bio* in the subject blurb, and made one cell per
+   service, so Joshua's two subjects left a 4-cell grid with an empty block.
+   Now one cell per tutor, and an active tutor's hardcoded cell is kept even
+   when they have a Firestore doc (the blurb is site copy with no Firestore
+   source). Only a tutor with no hardcoded cell gets a generated one
+   (first subject + credential + "Also available for …"). Tested with a
+   mocked Firestore module: inactive tutor removed, new tutor generated, bio
+   never shown. Tradeoff: if a tutor changes subjects in admin, their
+   homepage cell won't follow — edit `index.html` for that.
+2. **404 on nested paths** (`/Tutoring/a/b`) loaded unstyled. `404.html` now
+   injects a `<base>` (`/Tutoring/` on Pages, `/` locally) before any link,
+   and repoints the skip link so `#main` doesn't navigate away.
+3. **Booking copy** no longer promises a calendar confirmation that can't
+   happen yet (hero lede + "Confirmation" cell in `booking.html`). Other
+   pages still say "book on their calendar" (`faq.html`, `services.html`,
+   `contact.html`, `404.html`) — they become true once real booking URLs exist.
+4. **Accessibility:** new `--blue-ink: #2470BE` token (4.8:1 on paper) for
+   links and small blue labels; `--blue-mid` stays for borders/focus/accents.
+   Links inside `.page-head` are now white. Added visually-hidden `<h2>`s so
+   `services.html`, `contact.html`, `404.html` no longer skip H1→H3.
+   Detector now reports 0 contrast/heading findings. Its remaining flags
+   (Inter, hero grid, eyebrow label) are brief-mandated and deliberately kept.
+
+`.playwright-mcp/` (Playwright MCP output) added to `.gitignore`.
 
 ## Placeholder checklist
 

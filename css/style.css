@@ -11,6 +11,10 @@
   --navy-deep:  #042C53;
   --navy:       #0C447C;
   --blue-mid:   #378ADD;
+  /* --blue-mid is 3.4:1 on --paper: fine for borders, focus rings, and large
+     accents, but below WCAG AA for small text. Same hue, darkened to 4.8:1;
+     use it for links and small blue labels on light backgrounds. */
+  --blue-ink:   #2470BE;
   --blue-light: #B5D4F4;
   --blue-pale:  #85B7EB;
   --paper:      #F7F9FC;
@@ -79,7 +83,7 @@ p { margin: 0 0 1rem; }
 p:last-child { margin-bottom: 0; }
 
 a {
-  color: var(--blue-mid);
+  color: var(--blue-ink);
   text-decoration: underline;
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
@@ -178,7 +182,7 @@ td.rate,
   font-weight: 500;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--blue-mid);
+  color: var(--blue-ink);
   margin: 0 0 .65rem;
 }
 
@@ -407,7 +411,7 @@ td.rate,
   text-decoration: none;
   border-bottom: 1px solid var(--rule);
   padding-bottom: 2px;
-  color: var(--blue-mid);
+  color: var(--blue-ink);
 }
 .arrow-link:hover { color: var(--navy); border-bottom-color: var(--navy); }
 
@@ -550,6 +554,8 @@ td.rate,
   font-size: 1.05rem;
   margin-bottom: 0;
 }
+.page-head a { color: var(--white); }
+.page-head a:hover { color: var(--blue-light); }
 
 @media (max-width: 800px) {
   .page-head { padding: 42px 0; }
@@ -607,7 +613,7 @@ td.rate,
   font-weight: 500;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--blue-mid);
+  color: var(--blue-ink);
   margin-bottom: 8px;
 }
 .tutor-card .card-credential {
@@ -637,7 +643,7 @@ td.rate,
   font-weight: 500;
   letter-spacing: .09em;
   text-transform: uppercase;
-  color: var(--blue-mid);
+  color: var(--blue-ink);
   margin-bottom: 18px;
 }
 .profile-credential {
@@ -806,7 +812,7 @@ table.rates td.rate { color: var(--navy); font-weight: 500; }
   font-weight: 500;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--blue-mid);
+  color: var(--blue-ink);
   margin-bottom: 14px;
 }
 .contact-card a { font-weight: 500; word-break: break-word; }
@@ -1180,7 +1186,7 @@ table.rates td.rate { color: var(--navy); font-weight: 500; }
 }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item summary::marker { content: ""; }
-.faq-item summary:hover { color: var(--blue-mid); }
+.faq-item summary:hover { color: var(--blue-ink); }
 
 .faq-item summary::after {
   content: "+";

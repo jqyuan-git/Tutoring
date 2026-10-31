@@ -2,6 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+  /* GitHub Pages serves this file for any missing path, including nested ones
+     like /Tutoring/a/b, where relative URLs (css/style.css) would resolve to
+     /Tutoring/a/css/style.css and 404. Pin every relative URL to the site root:
+     /Tutoring/ on Pages, / on the local dev server. Must run before any link. */
+  (function () {
+    var base = document.createElement("base");
+    base.href = location.pathname.indexOf("/Tutoring/") === 0 ? "/Tutoring/" : "/";
+    document.head.appendChild(base);
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page not found — Firm Foundation</title>
 <meta name="robots" content="noindex">
@@ -52,6 +63,7 @@
 
   <section class="section">
     <div class="container">
+      <h2 class="visually-hidden">Where to go next</h2>
       <div class="grid grid-3">
         <div class="cell">
           <h3>Find a tutor</h3>
@@ -100,5 +112,10 @@
 </footer>
 
 <script src="js/main.js"></script>
+<script>
+  /* With <base> set above, "#main" would resolve against the site root and
+     navigate away; keep the skip link on this page. */
+  document.querySelector(".skip-link").href = location.pathname + "#main";
+</script>
 </body>
 </html>
